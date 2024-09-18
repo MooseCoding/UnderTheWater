@@ -5,25 +5,15 @@
  */
 
 buildscript {
-    ext {
-        kotlin_version = "2.0.0"
-    }
-
     repositories {
         mavenCentral()
         google()
     }
-
     dependencies {
         // Note for FTC Teams: Do not modify this yourself.
-        classpath 'com.android.tools.build:gradle:8.4.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:7.2.0'
     }
 }
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "2.0.0"
-}
-
 
 // This is now required because aapt2 has to be downloaded from the
 // google() repository beginning with version 3.2 of the Android Gradle Plugin
@@ -33,9 +23,6 @@ allprojects {
         google()
     }
 }
-
-
-
 
 repositories {
     mavenCentral()
