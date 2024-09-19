@@ -9,12 +9,10 @@ public class Main extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            DcMotorEx fL = hardwareMap.dcMotor.get("frontLeftMotor");
-            DcMotorEx bL = hardwareMap.dcMotor.get("backLeftMotor");
-            DcMotorEx fR = hardwareMap.dcMotor.get("frontRightMotor");
-            DcMotorEx bR = hardwareMap.dcMotor.get("backRightMotor");
-
-            DcMotor m; 
+            DcMotorEx fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeftMotor");
+            DcMotorEx bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeftMotor");
+            DcMotorEx fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
+            DcMotorEx bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
 
             waitForStart();
 
