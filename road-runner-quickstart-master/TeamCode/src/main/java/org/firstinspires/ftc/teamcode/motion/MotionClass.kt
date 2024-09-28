@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.org.teamcode.motion
 
-import com.qualcomm.robotcore.eventloop.opmode.Opmode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.Servo
@@ -12,8 +12,8 @@ public class MotionClass(): OpMode() {
 	var c2: Servo = TODO() // claw servo 2
 	var rS: Servo = TODO() // rotation servo
 
-	val iinitPositions: IntArray = intArrayOf(0,0,0,0)) // init position of the servos/motors
-	val finalPositions: IntArray = intArrayOf(1000,1000,1000, 1000) // final position 
+	val initPositions: DoubleArray = doubleArrayOf(0.0,0.0,0.0,0.0) // init position of the servos/motors
+	val finalPositions: DoubleArray = doubleArrayOf(1000.0,1000.0,1000.0, 1000.0) // final position
 
 	var gamepadCopy: Gamepad = TODO() // useful for checking if any button was pressed at a point as we can make sure the action isnt repeated multiple times
 
@@ -38,9 +38,9 @@ public class MotionClass(): OpMode() {
 				}
 			}
 			motionPosition.MOVING -> {
-				if (aM.position > initPositions[0]  && aM.position < finalPositions[0]) {}
+				if (aM.targetPosition > initPositions[0]  && aM.currentPosition < finalPositions[0]) {}
 				else {
-					if (aM.targetPosition == initPositions[0]) {
+					if (aM.targetPosition.toDouble() == initPositions[0]) {
 						currentMotion = motionPosition.RESET
 					}
 					else {
@@ -57,9 +57,9 @@ public class MotionClass(): OpMode() {
 		}
 		gamepadCopy = gamepad1
 	}
-	fun goTo(motorPos: Int, servo1Pos: Int, servo2Pos: Int, rotPos: Int) {
+	fun goTo(motorPos: Double, servo1Pos: Double, servo2Pos: Double, rotPos: Double) {
 		// Set all motion elements position to their corresponding position
-		aM.targetPosition = motorPos
+		aM.targetPosition = motorPos.toInt()
 		aM.power = 0.8
 		aM.mode = DcMotor.RunMode.RUN_TO_POSITION		
 
