@@ -12,7 +12,13 @@ buildscript {
     dependencies {
         // Note for FTC Teams: Do not modify this yourself.
         classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0"
     }
+}
+
+plugins {
+    id 'kotlin-maven-plugin'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
 }
 
 // This is now required because aapt2 has to be downloaded from the
