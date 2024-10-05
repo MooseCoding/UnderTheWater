@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.Drivetrain
+package org.firstinspires.ftc.teamcode.drivetrain
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotorEx
 
 
-class MechanumDrive(): OpMode(){
+public class MechanumDriveClass(): OpMode(){
     
     var fL : DcMotorEx = TODO()
     var fR : DcMotorEx = TODO()

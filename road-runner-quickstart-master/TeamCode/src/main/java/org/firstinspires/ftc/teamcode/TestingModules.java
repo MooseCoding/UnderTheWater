@@ -3,17 +3,17 @@ package org.firstinspires.ftc.teamcode;
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import org.firstinspires.ftc.teamcode.Drivetrain.MechanumDrive;
+
+import org.firstinspires.ftc.teamcode.drivetrain.MechanumDriveClass;
 
 @Photon
 public class TestingModules extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            OpMode driving = new MechanumDrive();
+            //MechanumDrive driving = new MechanumDrive();
 
-            driving.init();
+            //driving.init();
 
             waitForStart();
 
@@ -21,11 +21,11 @@ public class TestingModules extends LinearOpMode {
                 return;
             }
 
-            driving.start();
+            //driving.start();
             while (opModeIsActive()) {
 
             }
-            driving.stop();
+            //driving.stop();
         }
     }
 }

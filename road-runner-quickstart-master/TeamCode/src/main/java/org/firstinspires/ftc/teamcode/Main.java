@@ -2,9 +2,12 @@ package org.firstinspires.ftc.teamcode;
 
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Photon
+@TeleOp
 public class Main extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -14,6 +17,9 @@ public class Main extends LinearOpMode {
             DcMotorEx fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
             DcMotorEx bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
 
+            bR.setDirection(DcMotorSimple.Direction.REVERSE);
+            fR.setDirection(DcMotorSimple.Direction.REVERSE);
+
             waitForStart();
 
             if (isStopRequested()) {
@@ -21,23 +27,39 @@ public class Main extends LinearOpMode {
             }
 
             while (opModeIsActive()) {
-                double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-                double rx = gamepad1.right_stick_x;
-                double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+                double max;
 
-                // This ensures all the powers maintain the same ratio,
-                // Denominator is the largest motor power (absolute value) or 1
-                // but only if at least one is out of the range [-1, 1]
-                double d = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1); // Denominator
-                double fLP = (y + x + rx) / d; // Front left motor power
-                double bLP = (y - x + rx) / d; // Back left motor power
-                double fRP = (y - x - rx) / d; // Front right motor power
-                double bRP = (y + x - rx) / d; // Back right motor power
+                double axial = -gamepad1.left_stick_y;
+                double lateral = gamepad1.left_stick_x;
+                double yaw = gamepad1.right_stick_x;
 
-                fL.setPower(fLP);
-                bL.setPower(bLP);
-                fR.setPower(fRP);
-                bR.setPower(bRP);
+                double leftFrontPower = (axial + lateral) + yaw;
+                double rightFrontPower = (axial - lateral) - yaw;
+                double leftBackPower = (axial - lateral) + yaw;
+                double rightBackPower = (axial + lateral) - yaw;
+
+
+                max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+                max = Math.max(max, Math.abs(leftBackPower));
+                max = Math.max(max, Math.abs(rightBackPower));
+
+                if (max > 1.0) {
+                    leftFrontPower /= max;
+                    rightFrontPower /= max;
+                    leftBackPower /= max;
+                    rightBackPower /= max;
+                }
+
+                fL.setPower(leftFrontPower);
+                bL.setPower(leftBackPower);
+                bR.setPower(rightBackPower);
+                fR.setPower(rightFrontPower);
+
+                telemetry.addData("fLP",leftFrontPower);
+                telemetry.addData("fRP", rightFrontPower);
+                telemetry.addData("bLP", leftBackPower);
+                telemetry.addData("bRP", rightBackPower);
+                telemetry.update();
             }
         }
     }
