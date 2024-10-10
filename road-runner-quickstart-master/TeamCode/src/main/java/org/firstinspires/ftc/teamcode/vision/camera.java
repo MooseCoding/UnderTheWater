@@ -1,10 +1,16 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.vision;
 
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drivetrain.MechanumDriveClass;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
+import org.firstinspires.ftc.teamcode.vision.robotPipeline;
 
 @Photon
 public class camera extends LinearOpMode {
@@ -21,7 +27,7 @@ public class camera extends LinearOpMode {
                     {
                         camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
                         camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-                        camera.setPipeline(); 
+                        camera.setPipeline(new robotPipeline());
                     }
                     @Override
                     public void onError(int errorCode)
