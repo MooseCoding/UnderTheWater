@@ -4,27 +4,43 @@ import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.CRServo; 
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Photon
 @TeleOp
 public class Main extends LinearOpMode {
+    private DcMotorEx fL, fR, bL, bR;
+    private DcMotorEx liftMotor, armMotor; 
+    private CRServo c1, c2, yawServo, pitchServo; 
+
+    private enum CLAW_STATE {
+        INTAKE,
+        TRANSFER,
+        OUTTAKE,
+    }
+
+    private enum ARM_STATE {
+        
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            DcMotorEx fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeftMotor");
-            DcMotorEx bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeftMotor");
-            DcMotorEx fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
-            DcMotorEx bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
+            fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeftMotor"); 
+            bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeftMotor");
+            fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
+            bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
+
+            c1 = hardwareMap.crservo.get("leftServo");
+            c2 = hardwareMap.crservo.get("rightServo");
+            yawServo = hardwareMap.crservo.get("yawServo");
+            pitchServo = hardwareMap.crservo.get("pitchServo"); 
 
             bR.setDirection(DcMotorSimple.Direction.REVERSE);
             fR.setDirection(DcMotorSimple.Direction.REVERSE);
 
             waitForStart();
-
-            if (isStopRequested()) {
-                return;
-            }
 
             while (opModeIsActive()) {
                 double max;
@@ -54,6 +70,10 @@ public class Main extends LinearOpMode {
                 bL.setPower(leftBackPower);
                 bR.setPower(rightBackPower);
                 fR.setPower(rightFrontPower);
+
+
+
+
 
                 telemetry.addData("fLP",leftFrontPower);
                 telemetry.addData("fRP", rightFrontPower);
