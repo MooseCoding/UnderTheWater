@@ -9,6 +9,14 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.vision.Color;
+import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.vision.robotPipeline;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
 @Photon
 @TeleOp
 public class Main extends LinearOpMode {
@@ -28,6 +36,8 @@ public class Main extends LinearOpMode {
     private Gamepad g;
     private CLAW_STATE current_claw_state;
 
+    private double[] servos_zero = {0,0,0,0};
+
     private double[] intake_positions = {0,0,0,0,0,0}; // in order: arm motor -> lift motor -> pitch servo -> yaw servo -> c1 -> c2
     private double[] intake_power = {0,0,0,0,0,0};
     private double[] grab_positions = {0,0,0,0,0,0};
@@ -35,6 +45,15 @@ public class Main extends LinearOpMode {
     private double[] outtake_positions = {0,0,0,0,0,0};
     private double[] outtake_power = {0,0,0,0,0,0};
     private int[] servo_positions = {0,0,0,0}; // pitch servo  -> yaw servo -> c1 -> c2
+
+    private OpenCvCamera camera;
+    private int cID;
+    
+    private Sample currentTarget = new Sample();
+
+    private void clawToAngle(double angle) {
+        yawServo.getController().setServoPosition(servo_positions[1], servos_zero[1]);
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -62,6 +81,27 @@ public class Main extends LinearOpMode {
             servo_positions[1] = yawServo.getPortNumber();
             servo_positions[2] = c1.getPortNumber();
             servo_positions[3] = c2.getPortNumber();
+
+            cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
+            camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
+
+            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            {
+                @Override
+                public void onOpened()
+                {
+                    camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
+                    camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                    camera.setPipeline(new robotPipeline());
+                }
+                @Override
+                public void onError(int errorCode)
+                {
+                    /*
+                     * This will be called if the camera could not be opened
+                     */
+                }
+            });
 
             waitForStart();
 
@@ -126,7 +166,15 @@ public class Main extends LinearOpMode {
                         break;
                     }
                     case GRAB: {
+                        for (Sample s : robotPipeline.samples) {
+                            if (s.color == Color.YELLOW) {
+                                currentTarget = s;
+                            }
+                        }
 
+
+
+                        break;
                     }
                     case OUTTAKE: {
 
