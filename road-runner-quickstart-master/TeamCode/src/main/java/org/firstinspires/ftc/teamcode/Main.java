@@ -21,8 +21,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 @TeleOp
 public class Main extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
-    private DcMotorEx liftMotor, armMotor; 
-    private CRServo c1, c2, yawServo, pitchServo; 
+    private DcMotorEx liftMotor, armMotor;
+    private CRServo c1, c2, yawServo, pitchServo;
 
     private enum CLAW_STATE {
         STARTING,
@@ -33,7 +33,7 @@ public class Main extends LinearOpMode {
 
     private boolean claw_state_switched = false;
 
-    private Gamepad g;
+    private Gamepad g = new Gamepad();
     private CLAW_STATE current_claw_state;
 
     private double[] servos_zero = {0,0,0,0};
@@ -52,16 +52,16 @@ public class Main extends LinearOpMode {
     private Sample currentTarget = new Sample();
 
     private void clawToAngle(double angle) {
-        yawServo.getController().setServoPosition(servo_positions[1], servos_zero[1]);
+//        yawServo.getController().setServoPosition(servo_positions[1], servos_zero[1]);
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeftMotor"); 
-            bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeftMotor");
-            fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
-            bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
+            fL = (DcMotorEx) hardwareMap.dcMotor.get("fl");
+            bL = (DcMotorEx) hardwareMap.dcMotor.get("bl");
+            fR = (DcMotorEx) hardwareMap.dcMotor.get("fr");
+            bR = (DcMotorEx) hardwareMap.dcMotor.get("br");
             armMotor = (DcMotorEx) hardwareMap.dcMotor.get("armMotor");
             liftMotor = (DcMotorEx) hardwareMap.dcMotor.get("liftMotor");
 
@@ -77,13 +77,15 @@ public class Main extends LinearOpMode {
             armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            servo_positions[0] = pitchServo.getPortNumber();
-            servo_positions[1] = yawServo.getPortNumber();
-            servo_positions[2] = c1.getPortNumber();
-            servo_positions[3] = c2.getPortNumber();
+//            servo_positions[0] = pitchServo.getPortNumber();
+//            servo_positions[1] = yawServo.getPortNumber();
+//            servo_positions[2] = c1.getPortNumber();
+//            servo_positions[3] = c2.getPortNumber();
 
             cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
             camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
+            camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+            camera.setPipeline(new robotPipeline());
 
             camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
             {
@@ -91,8 +93,6 @@ public class Main extends LinearOpMode {
                 public void onOpened()
                 {
                     camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
-                    camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-                    camera.setPipeline(new robotPipeline());
                 }
                 @Override
                 public void onError(int errorCode)
@@ -139,10 +139,10 @@ public class Main extends LinearOpMode {
                     case STARTING: {
                         armMotor.setTargetPosition((int)intake_positions[0]);
                         liftMotor.setTargetPosition((int)intake_positions[1]);
-                        pitchServo.getController().setServoPosition(servo_positions[0], intake_positions[2]);
-                        yawServo.getController().setServoPosition(servo_positions[1], intake_positions[3]);
-                        c1.getController().setServoPosition(servo_positions[2], intake_positions[4]);
-                        c2.getController().setServoPosition(servo_positions[3], intake_positions[5]);
+//                        pitchServo.getController().setServoPosition(servo_positions[0], intake_positions[2]);
+//                        yawServo.getController().setServoPosition(servo_positions[1], intake_positions[3]);
+//                        c1.getController().setServoPosition(servo_positions[2], intake_positions[4]);
+//                        c2.getController().setServoPosition(servo_positions[3], intake_positions[5]);
 
                         armMotor.setPower(intake_power[0]);
                         liftMotor.setPower(intake_power[1]);
