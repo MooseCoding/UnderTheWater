@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.CRServo; 
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -21,54 +21,62 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 @TeleOp
 public class Main extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
-    private DcMotorEx liftMotor, armMotor; 
-    private CRServo c1, c2, yawServo, pitchServo; 
+    private DcMotorEx liftMotor, armMotor;
+    private Servo c1, c2, yawServo, pitchServo;
 
     private enum CLAW_STATE {
         STARTING,
         INTAKE,
         GRAB,
         OUTTAKE,
+        HANG,
+        HANG_FINAL,
     }
 
     private boolean claw_state_switched = false;
 
-    private Gamepad g;
+    private Gamepad g = new Gamepad();
     private CLAW_STATE current_claw_state;
 
     private double[] servos_zero = {0,0,0,0};
 
-    private double[] intake_positions = {0,0,0,0,0,0}; // in order: arm motor -> lift motor -> pitch servo -> yaw servo -> c1 -> c2
-    private double[] intake_power = {0,0,0,0,0,0};
+    private double[] intake_positions = {0,-6000,0.2,0.9,0,1}; // in order: arm motor -> lift motor -> pitch servo -> yaw servo -> c1 -> c2
+    private double[] intake_power = {0,0};
     private double[] grab_positions = {0,0,0,0,0,0};
-    private double[] grab_power = {0,0,0,0,0,0};
-    private double[] outtake_positions = {0,0,0,0,0,0};
-    private double[] outtake_power = {0,0,0,0,0,0};
-    private int[] servo_positions = {0,0,0,0}; // pitch servo  -> yaw servo -> c1 -> c2
+    private double[] grab_power = {0,0};
+    private double[] outtake_positions = {-944,0,-0.2,0.5,0.3,0.7};
+    private double[] outtake_power = {0,0};
 
+    private double[] hang_positions = {-945, 0};
+
+    private double[] hang_final_positions = {-600, -12000}; // arm motor -> lift motor
     private OpenCvCamera camera;
     private int cID;
-    
+
+    private double[] times = {0.6,0.6}; //intake time, outtake time
+    private double time = 0.0;
+
     private Sample currentTarget = new Sample();
 
+    /*
     private void clawToAngle(double angle) {
         yawServo.getController().setServoPosition(servo_positions[1], servos_zero[1]);
-    }
+    }*/
 
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeftMotor"); 
-            bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeftMotor");
-            fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRightMotor");
-            bR = (DcMotorEx) hardwareMap.dcMotor.get("backRightMotor");
+            fL = (DcMotorEx) hardwareMap.dcMotor.get("fl");
+            bL = (DcMotorEx) hardwareMap.dcMotor.get("bl");
+            fR = (DcMotorEx) hardwareMap.dcMotor.get("fr");
+            bR = (DcMotorEx) hardwareMap.dcMotor.get("br");
             armMotor = (DcMotorEx) hardwareMap.dcMotor.get("armMotor");
             liftMotor = (DcMotorEx) hardwareMap.dcMotor.get("liftMotor");
 
-            c1 = hardwareMap.crservo.get("leftServo");
-            c2 = hardwareMap.crservo.get("rightServo");
-            yawServo = hardwareMap.crservo.get("yawServo");
-            pitchServo = hardwareMap.crservo.get("pitchServo");
+            c1 = hardwareMap.servo.get("leftServo");
+            c2 = hardwareMap.servo.get("rightServo");
+            yawServo = hardwareMap.servo.get("yawServo");
+            pitchServo = hardwareMap.servo.get("pitchServo");
 
             current_claw_state = CLAW_STATE.STARTING;
 
@@ -77,13 +85,10 @@ public class Main extends LinearOpMode {
             armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            servo_positions[0] = pitchServo.getPortNumber();
-            servo_positions[1] = yawServo.getPortNumber();
-            servo_positions[2] = c1.getPortNumber();
-            servo_positions[3] = c2.getPortNumber();
-
+            /*
             cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
             camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
+            camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
 
             camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
             {
@@ -91,17 +96,16 @@ public class Main extends LinearOpMode {
                 public void onOpened()
                 {
                     camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
-                    camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
                     camera.setPipeline(new robotPipeline());
                 }
                 @Override
                 public void onError(int errorCode)
                 {
-                    /*
-                     * This will be called if the camera could not be opened
-                     */
+
                 }
             });
+
+            */
 
             waitForStart();
 
@@ -139,52 +143,130 @@ public class Main extends LinearOpMode {
                     case STARTING: {
                         armMotor.setTargetPosition((int)intake_positions[0]);
                         liftMotor.setTargetPosition((int)intake_positions[1]);
-                        pitchServo.getController().setServoPosition(servo_positions[0], intake_positions[2]);
-                        yawServo.getController().setServoPosition(servo_positions[1], intake_positions[3]);
-                        c1.getController().setServoPosition(servo_positions[2], intake_positions[4]);
-                        c2.getController().setServoPosition(servo_positions[3], intake_positions[5]);
+                        pitchServo.setPosition(intake_positions[2]);
+                        yawServo.setPosition(intake_positions[3]);
+                        c1.setPosition(intake_positions[4]);
+                        c2.setPosition(intake_positions[5]);
 
                         armMotor.setPower(intake_power[0]);
                         liftMotor.setPower(intake_power[1]);
-                        pitchServo.setPower(intake_power[2]);
-                        yawServo.setPower(intake_power[3]);
-                        c1.setPower(intake_power[4]);
-                        c2.setPower(intake_power[5]);
+
+                        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
 
                         current_claw_state = CLAW_STATE.INTAKE;
                         break;
                     }
                     case INTAKE: {
-                        if(armMotor.getCurrentPosition() >= intake_positions[0]) {
-                            claw_state_switched = true;
+                        if(!g.a && gamepad1.a) {
+                            c1.setPosition(outtake_positions[4]);
+                            c2.setPosition(outtake_positions[5]);
+
+                            if (time == 0) {
+                                time = getRuntime();
+                            }
                         }
 
-                        if(claw_state_switched && !g.a && gamepad1.a) {
-                            claw_state_switched = false;
+                        if (getRuntime() -time >= times[0] && time!=0) {
+                            armMotor.setTargetPosition((int)outtake_positions[0]);
+                            liftMotor.setTargetPosition((int)outtake_positions[1]);
+                            pitchServo.setPosition(outtake_positions[2]);
+                            yawServo.setPosition(outtake_positions[3]);
+
+                            armMotor.setPower(outtake_power[0]);
+                            liftMotor.setPower(outtake_power[1]);
+
+                            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                            current_claw_state = CLAW_STATE.OUTTAKE;
                         }
 
                         break;
                     }
+                    /*
                     case GRAB: {
                         for (Sample s : robotPipeline.samples) {
                             if (s.color == Color.YELLOW) {
                                 currentTarget = s;
                             }
                         }
+                        break;
+                    }*/
+                    case OUTTAKE: {
+                        if (gamepad1.a && !g.a) {
+                            c1.setPosition(intake_positions[4]);
+                            c2.setPosition(intake_positions[5]);
+
+                            if (time == 0) {
+                                time = getRuntime();
+                            }
+                        }
+
+                        if (getRuntime() - time >= times[1] && time!=0) {
+
+                            armMotor.setTargetPosition((int) intake_positions[0]);
+                            liftMotor.setTargetPosition((int) intake_positions[1]);
+                            pitchServo.setPosition(intake_positions[2]);
+                            yawServo.setPosition(intake_positions[3]);
 
 
+                            armMotor.setPower(intake_power[0]);
+                            liftMotor.setPower(intake_power[1]);
 
+                            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                            current_claw_state = CLAW_STATE.INTAKE;
+
+                            time = 0;
+                        }
                         break;
                     }
-                    case OUTTAKE: {
+                    case HANG: {
+                        armMotor.setTargetPosition(-940);
+                        liftMotor.setTargetPosition(0);
+                        pitchServo.setPosition(intake_positions[2]);
+                        yawServo.setPosition(intake_positions[3]);
+                        c1.setPosition(intake_positions[4]);
+                        c2.setPosition(intake_positions[5]);
 
+                        armMotor.setPower(0.2);
+                        liftMotor.setPower(1);
+
+                        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        if (gamepad1.dpad_down && !g.dpad_down) {
+                            current_claw_state = CLAW_STATE.HANG_FINAL;
+                        }
+                        break;
+                    }
+                    
+                    case HANG_FINAL: {
+                        armMotor.setTargetPosition(-1200);
+                        liftMotor.setTargetPosition(-10000);
+                        pitchServo.setPosition(intake_positions[2]);
+                        yawServo.setPosition(intake_positions[3]);
+                        c1.setPosition(intake_positions[4]);
+                        c2.setPosition(intake_positions[5]);
+
+                        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        armMotor.setPower(0.8);
+                        liftMotor.setPower(1);
                     }
                 }
 
-                telemetry.addData("fLP",leftFrontPower);
-                telemetry.addData("fRP", rightFrontPower);
-                telemetry.addData("bLP", leftBackPower);
-                telemetry.addData("bRP", rightBackPower);
+                if (gamepad1.dpad_up && !g.dpad_up) {
+                    current_claw_state = CLAW_STATE.HANG;
+                }
+
+                telemetry.addData("switch", current_claw_state);
+                telemetry.addData("lM", liftMotor.getCurrentPosition());
+                telemetry.addData("aM", armMotor.getCurrentPosition());
                 telemetry.update();
                 g.copy(gamepad1);
             }
