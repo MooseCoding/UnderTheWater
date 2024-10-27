@@ -22,7 +22,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 @TeleOp
 public class FindingValues extends LinearOpMode {
     private Gamepad g = new Gamepad();
-    private DcMotorEx liftMotor, armMotor;
+    private DcMotor liftMotor, armMotor;
     private Servo c1, c2, yawServo, pitchServo;
     private OpenCvCamera camera;
     private int cID;
@@ -30,16 +30,18 @@ public class FindingValues extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            armMotor = (DcMotorEx) hardwareMap.dcMotor.get("armMotor");
-            liftMotor = (DcMotorEx) hardwareMap.dcMotor.get("liftMotor");
+            armMotor =hardwareMap.dcMotor.get("armMotor");
+            liftMotor =hardwareMap.dcMotor.get("liftMotor");
 
             c1 = hardwareMap.servo.get("leftServo");
             c2 = hardwareMap.servo.get("rightServo");
             yawServo = hardwareMap.servo.get("yawServo");
             pitchServo = hardwareMap.servo.get("pitchServo");
 
+            armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
             //cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
             //camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
@@ -101,25 +103,20 @@ public class FindingValues extends LinearOpMode {
                      liftMotor.setPower(0);
                 }
 
-                if (gamepad1.left_bumper) {
-                    armMotor.setPower(-0.7);
-                }
-                else if(gamepad1.right_bumper) {
-                    armMotor.setPower(0.7);
-                }
-                else {
-                    armMotor.setPower(0);
+                if (gamepad1.dpad_up) {
+                    liftMotor.setTargetPosition(6000);
+                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    liftMotor.setPower(0.5);
                 }
 
-                if(gamepad1.left_stick_button && !g.left_stick_button) {
-                    liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                }
-                if (gamepad1.right_stick_button && !g.right_stick_button) {
-                    armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                if (g.a) {
+                    armMotor.setTargetPosition(-1300);
+
                 }
 
                 telemetry.addData("aM", armMotor.getCurrentPosition());
-                telemetry.addData("lM", liftMotor.getCurrentPosition());
+                telemetry.addData("aMTa", armMotor.getTargetPosition());
                 telemetry.update();
 
                 g.copy(gamepad1);
