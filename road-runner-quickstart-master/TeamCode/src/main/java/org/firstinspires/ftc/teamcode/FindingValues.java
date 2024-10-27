@@ -93,8 +93,8 @@ public class FindingValues extends LinearOpMode {
                     liftMotor.setTargetPosition(6000);
                     armMotor.setPower(0.5);
                     liftMotor.setPower(1);
-                    armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    //armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    //liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
                 else if (gamepad1.left_trigger > 0) {
                     liftMotor.setPower(-1);
