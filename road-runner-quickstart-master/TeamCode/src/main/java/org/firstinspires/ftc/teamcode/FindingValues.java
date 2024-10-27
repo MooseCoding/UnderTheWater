@@ -27,8 +27,6 @@ public class FindingValues extends LinearOpMode {
     private OpenCvCamera camera;
     private int cID;
 
-
-
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
@@ -39,6 +37,9 @@ public class FindingValues extends LinearOpMode {
             c2 = hardwareMap.servo.get("rightServo");
             yawServo = hardwareMap.servo.get("yawServo");
             pitchServo = hardwareMap.servo.get("pitchServo");
+
+            armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
             //cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
             //camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
@@ -86,7 +87,12 @@ public class FindingValues extends LinearOpMode {
                  */
 
                 if(gamepad1.right_trigger > 0) {
+                    armMotor.setTargetPosition(-600);
+                    liftMotor.setTargetPosition(6000);
+                    armMotor.setPower(0.5);
                     liftMotor.setPower(1);
+                    armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
                 else if (gamepad1.left_trigger > 0) {
                     liftMotor.setPower(-1);

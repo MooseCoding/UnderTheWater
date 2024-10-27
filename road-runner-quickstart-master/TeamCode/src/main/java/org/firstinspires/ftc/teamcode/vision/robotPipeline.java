@@ -34,27 +34,23 @@ public class robotPipeline extends OpenCvPipeline {
     }
 
     public static void findRectanglesByColor(Mat img, Scalar lowerBound, Scalar upperBound, Color color) {
-        // Convert the image to HSV
-        Mat hsvImage = new Mat();
-        Imgproc.cvtColor(img, hsvImage, Imgproc.COLOR_BGR2HSV);
+        // Reuse Mats instead of creating new ones
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV); // Convert directly within the original Mat
 
-        // Threshold the HSV image to get only specific colors
-        Mat mask = new Mat();
-        Core.inRange(hsvImage, lowerBound, upperBound, mask);
+        // Apply threshold within the existing img Mat
+        Core.inRange(img, lowerBound, upperBound, img); // Now `img` serves as a mask
 
-        // Find contours
+        // Find contours directly on the modified `img` (now the mask)
         ArrayList<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(img, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
         // Iterate through contours and filter for rectangles
         for (MatOfPoint contour : contours) {
             MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
             RotatedRect rotatedRect = Imgproc.minAreaRect(contour2f);
 
-            // Get the dimensions of the rectangle
             if (isRectangle(rotatedRect)) {
-                // Draw the rectangle
+                // Draw rectangle directly on the original image
                 Point[] rectPoints = new Point[4];
                 rotatedRect.points(rectPoints);
 
