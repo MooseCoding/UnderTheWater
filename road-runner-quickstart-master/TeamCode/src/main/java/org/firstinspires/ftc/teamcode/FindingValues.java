@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Size;
+
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,6 +16,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.vision.Color;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.robotPipeline;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -30,29 +34,30 @@ public class FindingValues extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            armMotor =hardwareMap.dcMotor.get("armMotor");
-            liftMotor =hardwareMap.dcMotor.get("liftMotor");
+            //armMotor =hardwareMap.dcMotor.get("armMotor");
+            //liftMotor =hardwareMap.dcMotor.get("liftMotor");
 
-            c1 = hardwareMap.servo.get("leftServo");
-            c2 = hardwareMap.servo.get("rightServo");
-            yawServo = hardwareMap.servo.get("yawServo");
-            pitchServo = hardwareMap.servo.get("pitchServo");
+            //c1 = hardwareMap.servo.get("leftServo");
+            //c2 = hardwareMap.servo.get("rightServo");
+            //yawServo = hardwareMap.servo.get("yawServo");
+            //pitchServo = hardwareMap.servo.get("pitchServo");
 
-            armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            //armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            //armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-            //cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
-            //camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
-            //camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+            // Initalize the Camera, and Camera ID
+            /*
+            cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
+            camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
 
-            /*camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
             {
                 @Override
                 public void onOpened()
                 {
-                    camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
+                    camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
                     camera.setPipeline(new robotPipeline());
                 }
                 @Override
@@ -61,6 +66,18 @@ public class FindingValues extends LinearOpMode {
 
                 }
             });*/
+
+            VisionPortal mVP ;
+            VisionPortal.Builder mVPB = new VisionPortal.Builder();
+            mVPB.setCamera(hardwareMap.get(WebcamName.class, "cam"))
+                            .setCameraResolution(new Size(640, 480))
+                                    .enableLiveView(true)
+                                            .setAutoStopLiveView(true)
+                                                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                    .addProcessor(new VisionProcessor() {
+                    })
+
+            mVP = mVPB.build();
 
             waitForStart();
             while(opModeIsActive()) {
@@ -88,7 +105,7 @@ public class FindingValues extends LinearOpMode {
                     }
                  */
 
-                if(gamepad1.right_trigger > 0) {
+                /*if(gamepad1.right_trigger > 0) {
                     armMotor.setTargetPosition(-600);
                     liftMotor.setTargetPosition(6000);
                     armMotor.setPower(0.5);
@@ -113,7 +130,7 @@ public class FindingValues extends LinearOpMode {
                 if (g.a) {
                     armMotor.setTargetPosition(-1300);
 
-                }
+                }*/
 
                 telemetry.addData("aM", armMotor.getCurrentPosition());
                 telemetry.addData("aMTa", armMotor.getTargetPosition());
