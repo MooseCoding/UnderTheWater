@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.CRServo; 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -19,9 +19,9 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 @Photon
 @TeleOp
-public class Main extends LinearOpMode {
+public class NewMain extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
-    private DcMotorEx liftMotor, armMotor;
+    private DcMotorEx iM, oM1, oM2;
     private CRServo c1, c2, yawServo, pitchServo;
 
     private enum CLAW_STATE {
@@ -48,40 +48,37 @@ public class Main extends LinearOpMode {
 
     private OpenCvCamera camera;
     private int cID;
-    
-    private Sample currentTarget = new Sample();
 
-    private void clawToAngle(double angle) {
-//        yawServo.getController().setServoPosition(servo_positions[1], servos_zero[1]);
-    }
+    private Sample currentTarget = new Sample();
 
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            fL = (DcMotorEx) hardwareMap.dcMotor.get("fl");
-            bL = (DcMotorEx) hardwareMap.dcMotor.get("bl");
-            fR = (DcMotorEx) hardwareMap.dcMotor.get("fr");
-            bR = (DcMotorEx) hardwareMap.dcMotor.get("br");
-            armMotor = (DcMotorEx) hardwareMap.dcMotor.get("armMotor");
-            liftMotor = (DcMotorEx) hardwareMap.dcMotor.get("liftMotor");
+            fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
+            bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
+            fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
+            bR = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
+            iM = (DcMotorEx) hardwareMap.dcMotor.get("intake");
+            oM1 = (DcMotorEx) hardwareMap.dcMotor.get("outtake1");
+            oM2 = (DcMotorEx) hardwareMap.dcMotor.get("outtake2");
 
+            /*
             c1 = hardwareMap.crservo.get("leftServo");
             c2 = hardwareMap.crservo.get("rightServo");
             yawServo = hardwareMap.crservo.get("yawServo");
             pitchServo = hardwareMap.crservo.get("pitchServo");
-
+             */
             current_claw_state = CLAW_STATE.STARTING;
 
             bR.setDirection(DcMotorSimple.Direction.REVERSE);
             fR.setDirection(DcMotorSimple.Direction.REVERSE);
-            armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            iM.setDirection(DcMotorSimple.Direction.REVERSE);
+            oM2.setDirection(DcMotorSimple.Direction.REVERSE);
+            iM.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            oM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            oM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-//            servo_positions[0] = pitchServo.getPortNumber();
-//            servo_positions[1] = yawServo.getPortNumber();
-//            servo_positions[2] = c1.getPortNumber();
-//            servo_positions[3] = c2.getPortNumber();
-
+            /*
             cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
             camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
             camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
@@ -97,11 +94,8 @@ public class Main extends LinearOpMode {
                 @Override
                 public void onError(int errorCode)
                 {
-                    /*
-                     * This will be called if the camera could not be opened
-                     */
                 }
-            });
+            });*/
 
             waitForStart();
 
@@ -137,42 +131,14 @@ public class Main extends LinearOpMode {
                 // FSM
                 switch(current_claw_state) {
                     case STARTING: {
-                        armMotor.setTargetPosition((int)intake_positions[0]);
-                        liftMotor.setTargetPosition((int)intake_positions[1]);
-//                        pitchServo.getController().setServoPosition(servo_positions[0], intake_positions[2]);
-//                        yawServo.getController().setServoPosition(servo_positions[1], intake_positions[3]);
-//                        c1.getController().setServoPosition(servo_positions[2], intake_positions[4]);
-//                        c2.getController().setServoPosition(servo_positions[3], intake_positions[5]);
 
-                        armMotor.setPower(intake_power[0]);
-                        liftMotor.setPower(intake_power[1]);
-                        pitchServo.setPower(intake_power[2]);
-                        yawServo.setPower(intake_power[3]);
-                        c1.setPower(intake_power[4]);
-                        c2.setPower(intake_power[5]);
-
-                        current_claw_state = CLAW_STATE.INTAKE;
                         break;
                     }
                     case INTAKE: {
-                        if(armMotor.getCurrentPosition() >= intake_positions[0]) {
-                            claw_state_switched = true;
-                        }
-
-                        if(claw_state_switched && !g.a && gamepad1.a) {
-                            claw_state_switched = false;
-                        }
 
                         break;
                     }
                     case GRAB: {
-                        for (Sample s : robotPipeline.samples) {
-                            if (s.color == Color.YELLOW) {
-                                currentTarget = s;
-                            }
-                        }
-
-
 
                         break;
                     }
@@ -181,10 +147,59 @@ public class Main extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("fLP",leftFrontPower);
-                telemetry.addData("fRP", rightFrontPower);
-                telemetry.addData("bLP", leftBackPower);
-                telemetry.addData("bRP", rightBackPower);
+                if(gamepad1.right_bumper) {
+                    iM.setTargetPosition(1577);
+                    iM.setPower(1);
+                    iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                else if (gamepad1.left_bumper){
+                    iM.setTargetPosition(10);
+                    iM.setPower(1);
+                    iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+
+                /*
+                if (gamepad1.right_trigger > 0){
+                    oM1.setTargetPosition(2800);
+                    oM2.setTargetPosition(2800);
+                    oM1.setPower(1);
+                    oM2.setPower(1);
+                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                else if (gamepad1.left_trigger > 0) {
+                    oM1.setTargetPosition(0);
+                    oM2.setTargetPosition(0);
+                    oM1.setPower(1);
+                    oM2.setPower(1);
+                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }*/
+
+                if(gamepad1.triangle) {
+                    oM2.setTargetPosition(4200);
+                    oM2.setPower(1);
+                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                if (gamepad1.cross) {
+                    oM1.setTargetPosition(4200);
+                    oM1.setPower(1);
+                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                if(gamepad1.square) {
+                    oM2.setTargetPosition(0);
+                    oM2.setPower(1);
+                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                if (gamepad1.circle) {
+                    oM1.setTargetPosition(0);
+                    oM1.setPower(1);
+                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+
+                telemetry.addData("iM", iM.getCurrentPosition());
+                telemetry.addData("oM1", oM1.getCurrentPosition());
+                telemetry.addData("oM2", oM2.getCurrentPosition());
                 telemetry.update();
                 g.copy(gamepad1);
             }
