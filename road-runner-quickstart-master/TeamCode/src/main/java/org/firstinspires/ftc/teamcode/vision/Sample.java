@@ -6,7 +6,7 @@ public class Sample {
     public RotatedRect rect;
     public Color color;
 
-    Sample(RotatedRect rect, Color color) {
+    public Sample(RotatedRect rect, Color color) {
         this.rect = rect;
         this.color = color;
     }
