@@ -50,17 +50,17 @@ public class NewMain extends LinearOpMode {
     private CLAW_STATE current_claw_state;
 
     private double[] homes = {0,0,  0,0,0}; //intake, lift, gps, gc1, gc2, 
-    private double[] homes_power = {0,0}; 
+    private double[] homes_power = {0.7,1}; 
 
     private double[] intake_positions = {0,0,0,0,0}; // in order: intake -> pitch servo -> yaw servo -> c1 -> c2
-    private double[] intake_power = {0}; 
+    private double[] intake_power = {0.8}; 
 
     private double[] grab_positions = {0,0,0,0}; //  pitch -> yaw -> c1 -> c2
 
-    private double[] trans_positions = { 0,0,0,  0,0,0,0}; // gPS -> gC1 -> gC2 -> pitch -> yaw -> c1 -> c2
+    private double[] trans_positions = { 0,0,0,  0,0,0,0 , 0}; // gPS -> gC1 -> gC2 -> pitch -> yaw -> c1 -> c2 -> lift
 
     private double[] outtake_positions = {0,0,0,0}; // lift -> pitch (grab) -> c1 (g) -> c2 (g)
-    private double[] outtake_power = {0};
+    private double[] outtake_power = {1};
  
     private OpenCvCamera camera;
     private int cID;
@@ -273,6 +273,7 @@ public class NewMain extends LinearOpMode {
                                 pitchServo.setPosition(grab_positions[0]);
                                 t = -1; 
 
+                                DriveLift(trans_positions[7], homes_power[1]); 
                                 ExtendIntake(homes[0], homes_power[0]);
                                 current_claw_state = CLAW_STATE.GRAB; 
                             }
@@ -282,6 +283,7 @@ public class NewMain extends LinearOpMode {
                         switch(ig) {
                             case WAIT: {
                                 if (iM.getCurrentPosition() <= homes[0] + 20) {
+                                    DriveLift(homes[1], homes_power[1]);
                                     ig = INSTATE_GRAB.GCS; 
                                 }
                                 break; 
