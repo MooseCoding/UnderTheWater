@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -20,15 +20,25 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 @Photon
 @TeleOp
 public class NewMain extends LinearOpMode {
+    private final Scalar lowerBlue = new Scalar(100, 150, 50);
+    private final Scalar upperBlue = new Scalar(130,255,255);
+    private final Scalar lowerRed1 = new Scalar(0,150,50);
+    private final Scalar upperRed1 = new Scalar(10,255,255);
+    private final Scalar lowerRed2 = new Scalar(170,150,50);
+    private final Scalar upperRed2 = new Scalar(180,255,255);
+    private final Scalar lowerYellow = new Scalar(20,150,50);
+    private final Scalar upperYellow = new Scalar(30,255,255);
+
     private DcMotorEx fL, fR, bL, bR;
     private DcMotorEx iM, oM1, oM2;
-    private CRServo c1, c2, yawServo, pitchServo;
+    private Servo c1, c2, yawServo, pitchServo;
 
     private enum CLAW_STATE {
         STARTING,
         INTAKE,
         GRAB,
         OUTTAKE,
+        HANG
     }
 
     private boolean claw_state_switched = false;
@@ -36,20 +46,63 @@ public class NewMain extends LinearOpMode {
     private Gamepad g = new Gamepad();
     private CLAW_STATE current_claw_state;
 
-    private double[] servos_zero = {0,0,0,0};
-
-    private double[] intake_positions = {0,0,0,0,0,0}; // in order: arm motor -> lift motor -> pitch servo -> yaw servo -> c1 -> c2
-    private double[] intake_power = {0,0,0,0,0,0};
-    private double[] grab_positions = {0,0,0,0,0,0};
-    private double[] grab_power = {0,0,0,0,0,0};
-    private double[] outtake_positions = {0,0,0,0,0,0};
-    private double[] outtake_power = {0,0,0,0,0,0};
-    private int[] servo_positions = {0,0,0,0}; // pitch servo  -> yaw servo -> c1 -> c2
-
+    private double[] intake_positions = {0, 0,0,0,0,0,0}; // in order: iM -> oM1 -> oM2 -> pitch servo -> yaw servo -> c1 -> c2
+    private double[] intake_power = {0,0,0}; 
+    private double[] grab_positions = {0,0,0,0,0,0,0};
+    private double[] grab_power = {0,0,0}; 
+    private double[] outtake_positions = {0,0,0,0,0,0,0};
+    private double[] outtake_power = {0,0,0};
+ 
     private OpenCvCamera camera;
     private int cID;
 
-    private Sample currentTarget = new Sample();
+    public static ArrayList<Sample> samples = new ArrayList<>();
+
+    public static void findRectanglesByColor(Mat img, Scalar lowerBound, Scalar upperBound, Color color) {
+        // Convert the image to HSV
+        Mat hsvImage = new Mat();
+        Imgproc.cvtColor(img, hsvImage, Imgproc.COLOR_BGR2HSV);
+
+        // Threshold the HSV image to get only specific colors
+        Mat mask = new Mat();
+        Core.inRange(hsvImage, lowerBound, upperBound, mask);
+
+        // Find contours
+        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        // Iterate through contours and filter for rectangles
+        for (MatOfPoint contour : contours) {
+            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+            RotatedRect rotatedRect = Imgproc.minAreaRect(contour2f);
+
+            // Get the dimensions of the rectangle
+            if (isRectangle(rotatedRect)) {
+                // Draw the rectangle
+                Point[] rectPoints = new Point[4];
+                rotatedRect.points(rectPoints);
+
+
+                if(rotatedRect.size.height > 100 && rotatedRect.size.width > 100) {
+                    for (int j = 0; j < 4; j++) {
+                        Imgproc.line(img, rectPoints[j], rectPoints[(j + 1) % 4], new Scalar(0, 255, 0), 2);
+                    }
+                }
+
+                if (samples.isEmpty()) {
+                    samples.add(new Sample(rotatedRect, color));
+                }
+            }
+        }
+    }
+
+    // Helper method to check if a contour is roughly a rectangle
+    private static boolean isRectangle(RotatedRect rotatedRect) {
+        double aspectRatio = Math.min(rotatedRect.size.width, rotatedRect.size.height) /
+                Math.max(rotatedRect.size.width, rotatedRect.size.height);
+        return aspectRatio > 0.8 && aspectRatio < 1.2;  // roughly square
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -62,44 +115,58 @@ public class NewMain extends LinearOpMode {
             oM1 = (DcMotorEx) hardwareMap.dcMotor.get("outtake1");
             oM2 = (DcMotorEx) hardwareMap.dcMotor.get("outtake2");
 
-            /*
-            c1 = hardwareMap.crservo.get("leftServo");
-            c2 = hardwareMap.crservo.get("rightServo");
-            yawServo = hardwareMap.crservo.get("yawServo");
-            pitchServo = hardwareMap.crservo.get("pitchServo");
-             */
+            
+            c1 = hardwareMap.servo.get("leftServo");
+            c2 = hardwareMap.servo.get("rightServo");
+            yawServo = hardwareMap.servo.get("yawServo");
+            pitchServo = hardwareMap.servo.get("pitchServo");
+            
             current_claw_state = CLAW_STATE.STARTING;
 
             bR.setDirection(DcMotorSimple.Direction.REVERSE);
             fR.setDirection(DcMotorSimple.Direction.REVERSE);
             iM.setDirection(DcMotorSimple.Direction.REVERSE);
             oM2.setDirection(DcMotorSimple.Direction.REVERSE);
+            
             iM.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             oM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             oM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            /*
-            cID = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); // camera id
-            camera = OpenCvCameraFactory.getInstance().createWebcam( hardwareMap.get(WebcamName.class, "cam"), cID); // camera object
-            camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-            camera.setPipeline(new robotPipeline());
+            // Init the vision portal for the camera
+            VisionPortal mVP ;
+            VisionPortal.Builder mVPB = new VisionPortal.Builder();
+            mVPB.setCamera(hardwareMap.get(WebcamName.class, "cam"))
+                            .setCameraResolution(new Size(640, 480))
+                                    .enableLiveView(true)
+                                            .setAutoStopLiveView(true)
+                                                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG);
 
-            camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-            {
+
+            mVPB.addProcessors(new VisionProcessor() {
                 @Override
-                public void onOpened()
-                {
-                    camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT); // CHANGE DEPENDING ON WHAT IT LOOKS LIKE
+                public void init(int width, int height, CameraCalibration calibration) {
+
                 }
+
                 @Override
-                public void onError(int errorCode)
-                {
+                public Object processFrame(Mat frame, long captureTimeNanos) {
+                    findRectanglesByColor(frame, lowerYellow, upperYellow, Color.YELLOW);
+
+                    return null;
                 }
-            });*/
+
+                @Override
+                public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
+
+                }
+            });
+
+            mVP = mVPB.build();
 
             waitForStart();
 
             while (opModeIsActive()) {
+                // Drivetrain
                 double max;
 
                 double axial = -gamepad1.left_stick_y;
@@ -128,25 +195,95 @@ public class NewMain extends LinearOpMode {
                 bR.setPower(rightBackPower);
                 fR.setPower(rightFrontPower);
 
-                // FSM
+                // FSM for the claw
                 switch(current_claw_state) {
                     case STARTING: {
+                        iM.setTargetPosition(intake_positions[0]);
+                        oM1.setTargetPosition(intake_positions[1]);
+                        oM2.setTargetPosition(intake_positions[2]);
+
+                        iM.setPower(intake_power[0]);
+                        oM1.setPower(intake_power[1]);
+                        oM2.setPower(intake_power[2]);
+
+                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        pitchServo.setPosition(intake_positions[3]);
+                        yawServo.setPosition(intake_positions[4]);
+                        c1.setPosition(intake_positions[5]);
+                        c2.setPosition(intake_positions[6]); 
 
                         break;
                     }
                     case INTAKE: {
+                        iM.setTargetPosition(grab_positions[0]);
+                        oM1.setTargetPosition(grab_positions[1]);
+                        oM2.setTargetPosition(grab_positions[2]);
+
+                        iM.setPower(grab_power[0]);
+                        oM1.setPower(grab_power[1]);
+                        oM2.setPower(grab_power[2]);
+
+                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        pitchServo.setPosition(grab_positions[3]);
+                        yawServo.setPosition(grab_positions[4]);
+                        c1.setPosition(grab_positions[5]);
+                        c2.setPosition(grab_positions[6]); 
 
                         break;
                     }
                     case GRAB: {
+                        iM.setTargetPosition(outtake_positions[0]);
+                        oM1.setTargetPosition(outtake_positions[1]);
+                        oM2.setTargetPosition(outtake_positions[2]);
+
+                        iM.setPower(outtake_power[0]);
+                        oM1.setPower(outtake_power[1]);
+                        oM2.setPower(outtake_power[2]);
+
+                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        pitchServo.setPosition(outtake_positions[3]);
+                        yawServo.setPosition(outtake_positions[4]);
+                        c1.setPosition(outtake_positions[5]);
+                        c2.setPosition(outtake_positions[6]); 
 
                         break;
                     }
                     case OUTTAKE: {
+                        iM.setTargetPosition(intake_positions[0]);
+                        oM1.setTargetPosition(intake_positions[1]);
+                        oM2.setTargetPosition(intake_positions[2]);
 
+                        iM.setPower(intake_power[0]);
+                        oM1.setPower(intake_power[1]);
+                        oM2.setPower(intake_power[2]);
+
+                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                        pitchServo.setPosition(intake_positions[3]);
+                        yawServo.setPosition(intake_positions[4]);
+                        c1.setPosition(intake_positions[5]);
+                        c2.setPosition(intake_positions[6]); 
+
+                        break;
                     }
                 }
 
+                if (gamepad1.dpad_up){
+                    current_claw_state = CLAW_STATE.HANG;
+                }
+
+                /*
                 if(gamepad1.right_bumper) {
                     iM.setTargetPosition(1577);
                     iM.setPower(1);
@@ -157,24 +294,6 @@ public class NewMain extends LinearOpMode {
                     iM.setPower(1);
                     iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
-
-                /*
-                if (gamepad1.right_trigger > 0){
-                    oM1.setTargetPosition(2800);
-                    oM2.setTargetPosition(2800);
-                    oM1.setPower(1);
-                    oM2.setPower(1);
-                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                else if (gamepad1.left_trigger > 0) {
-                    oM1.setTargetPosition(0);
-                    oM2.setTargetPosition(0);
-                    oM1.setPower(1);
-                    oM2.setPower(1);
-                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }*/
 
                 if(gamepad1.triangle) {
                     oM2.setTargetPosition(4200);
@@ -195,7 +314,7 @@ public class NewMain extends LinearOpMode {
                     oM1.setTargetPosition(0);
                     oM1.setPower(1);
                     oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
+                }*/ 
 
                 telemetry.addData("iM", iM.getCurrentPosition());
                 telemetry.addData("oM1", oM1.getCurrentPosition());
