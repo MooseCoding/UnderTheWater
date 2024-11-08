@@ -32,6 +32,7 @@ public class NewMain extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
     private DcMotorEx iM, oM1, oM2;
     private Servo c1, c2, yawServo, pitchServo;
+    private Servo gC1, gC2, gPS; 
 
     private enum CLAW_STATE {
         STARTING,
@@ -43,20 +44,45 @@ public class NewMain extends LinearOpMode {
 
     private boolean claw_state_switched = false;
 
+    private double t = -1; 
+
     private Gamepad g = new Gamepad();
     private CLAW_STATE current_claw_state;
 
-    private double[] intake_positions = {0, 0,0,0,0,0,0}; // in order: iM -> oM1 -> oM2 -> pitch servo -> yaw servo -> c1 -> c2
-    private double[] intake_power = {0,0,0}; 
-    private double[] grab_positions = {0,0,0,0,0,0,0};
-    private double[] grab_power = {0,0,0}; 
-    private double[] outtake_positions = {0,0,0,0,0,0,0};
-    private double[] outtake_power = {0,0,0};
+    private double[] homes = {0,0,  0,0,0}; //intake, lift, gps, gc1, gc2, 
+    private double[] homes_power = {0,0}; 
+
+    private double[] intake_positions = {0,0,0,0,0}; // in order: intake -> pitch servo -> yaw servo -> c1 -> c2
+    private double[] intake_power = {0}; 
+
+    private double[] grab_positions = {0,0,0,0}; //  pitch -> yaw -> c1 -> c2
+
+    private double[] trans_positions = { 0,0,0,  0,0,0,0}; // gPS -> gC1 -> gC2 -> pitch -> yaw -> c1 -> c2
+
+    private double[] outtake_positions = {0,0,0,0}; // lift -> pitch (grab) -> c1 (g) -> c2 (g)
+    private double[] outtake_power = {0};
  
     private OpenCvCamera camera;
     private int cID;
 
     public static ArrayList<Sample> samples = new ArrayList<>();
+
+    public void DriveLift(double power, double position) {
+        oM1.setTargetPosition(position);
+        oM2.setTargetPosition(position);
+
+        oM1.setPower(power);
+        oM2.setPower(power);
+
+        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    public void ExtendIntake(double power, double position) {
+        iM.setTargetPosition(position);
+        iM.setPower(power);
+        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
+    }
 
     public static void findRectanglesByColor(Mat img, Scalar lowerBound, Scalar upperBound, Color color) {
         // Convert the image to HSV
@@ -104,6 +130,24 @@ public class NewMain extends LinearOpMode {
         return aspectRatio > 0.8 && aspectRatio < 1.2;  // roughly square
     }
 
+    private enum INSTATE_GRAB {
+        WAIT, 
+        GCS,
+        CS,
+        GCP,
+    }
+
+    private INSTATE_GRAB ig = INSTATE_GRAB.WAIT; 
+
+    private enum INSTATE_OUTTAKE {
+        WAIT,
+        LIFT, 
+        TURN,
+        DROP,
+    }
+
+    private INSTATE_OUTTAKE io = INSTATE_OUTTAKE.WAIT; 
+
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
@@ -120,6 +164,10 @@ public class NewMain extends LinearOpMode {
             c2 = hardwareMap.servo.get("rightServo");
             yawServo = hardwareMap.servo.get("yawServo");
             pitchServo = hardwareMap.servo.get("pitchServo");
+
+            gC1 = hardwareMap.servo.get("gS1");
+            gC2 = hardwareMap.servo.get("gS2");
+            gPS = hardwareMap.servo.get("gPS"); 
             
             current_claw_state = CLAW_STATE.STARTING;
 
@@ -131,6 +179,9 @@ public class NewMain extends LinearOpMode {
             iM.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             oM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             oM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            oM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             // Init the vision portal for the camera
             VisionPortal mVP ;
@@ -198,83 +249,139 @@ public class NewMain extends LinearOpMode {
                 // FSM for the claw
                 switch(current_claw_state) {
                     case STARTING: {
-                        iM.setTargetPosition(intake_positions[0]);
-                        oM1.setTargetPosition(intake_positions[1]);
-                        oM2.setTargetPosition(intake_positions[2]);
+                        if(gamepad1.right_bumper > 0) {
+                            ExtendIntake(intake_positions[0], intake_power[0]);
+                            
+                            pitchServo.setPosition(intake_positions[1]);
+                            yawServo.setPosition(intake_positions[2]);
+                            c1.setPosition(intake_positions[3]);
+                            c2.setPosition(grab_positions[4]); 
 
-                        iM.setPower(intake_power[0]);
-                        oM1.setPower(intake_power[1]);
-                        oM2.setPower(intake_power[2]);
-
-                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                        pitchServo.setPosition(intake_positions[3]);
-                        yawServo.setPosition(intake_positions[4]);
-                        c1.setPosition(intake_positions[5]);
-                        c2.setPosition(intake_positions[6]); 
-
+                            current_claw_state = CLAW_STATE.INTAKE; 
+                        }
                         break;
                     }
                     case INTAKE: {
-                        iM.setTargetPosition(grab_positions[0]);
-                        oM1.setTargetPosition(grab_positions[1]);
-                        oM2.setTargetPosition(grab_positions[2]);
+                            if (gamepad1.right_trigger > 0 && t == -1) {
+                                c1.setPosition(grab_positions[2]);
+                                c2.setPosition(grab_positions[3]);
 
-                        iM.setPower(grab_power[0]);
-                        oM1.setPower(grab_power[1]);
-                        oM2.setPower(grab_power[2]);
+                                t = getRuntime(); 
+                            }
 
-                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            if (t != -1 && getRuntime() - t > 0.5) {
+                                pitchServo.setPosition(grab_positions[0]);
+                                t = -1; 
 
-                        pitchServo.setPosition(grab_positions[3]);
-                        yawServo.setPosition(grab_positions[4]);
-                        c1.setPosition(grab_positions[5]);
-                        c2.setPosition(grab_positions[6]); 
-
+                                ExtendIntake(homes[0], homes_power[0]);
+                                current_claw_state = CLAW_STATE.GRAB; 
+                            }
                         break;
                     }
                     case GRAB: {
-                        iM.setTargetPosition(outtake_positions[0]);
-                        oM1.setTargetPosition(outtake_positions[1]);
-                        oM2.setTargetPosition(outtake_positions[2]);
+                        switch(ig) {
+                            case WAIT: {
+                                if (iM.getCurrentPosition() <= homes[0] + 20) {
+                                    ig = INSTATE_GRAB.GCS; 
+                                }
+                                break; 
+                            }
+                            case GCS: {
+                                if(t == -1) {
+                                    gC1.setPosition(trans_positions[1]);
+                                    gC2.setPosition(trans_positions[2]);
 
-                        iM.setPower(outtake_power[0]);
-                        oM1.setPower(outtake_power[1]);
-                        oM2.setPower(outtake_power[2]);
+                                    t = getRuntime(); 
+                                }
 
-                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                                if (t != -1 && getRuntime - t > 0.2 ) {
+                                    t = -1; 
+                                    ig = INSTATE_GRAB.CS; 
+                                }
 
-                        pitchServo.setPosition(outtake_positions[3]);
-                        yawServo.setPosition(outtake_positions[4]);
-                        c1.setPosition(outtake_positions[5]);
-                        c2.setPosition(outtake_positions[6]); 
+                                break;
+                            }
+                            case CS: {
+                                if (t == -1) {
+                                    c1.setPosition(trans_positions[5]);
+                                    c2.setPosition(trans_positions[6]);
+
+                                    t = getRuntime(); 
+                                }
+
+                                if (t != -1 && getRuntime() - t > 0.2) {
+                                    t = -1;
+                                    ig = INSTATE_GRAB.GCP; 
+                                }
+                                break;
+                            }
+                            case GCP: {
+                                if (t == -1) {
+                                    gPS.setPosition(trans_positions[0]); 
+
+                                    t = getRuntime(); 
+                                }
+                                if (t != -1 && getRuntime() - t > 0.2) {
+                                    t = -1;
+                                    current_claw_state = CLAW_STATE.OUTTAKE; 
+                                    ig = INSTATE_GRAB.WAIT; 
+                                }
+                                break;
+                            } 
+                        }
 
                         break;
                     }
                     case OUTTAKE: {
-                        iM.setTargetPosition(intake_positions[0]);
-                        oM1.setTargetPosition(intake_positions[1]);
-                        oM2.setTargetPosition(intake_positions[2]);
+                        switch (io) {
+                            case WAIT: {
+                                if(gamepad1.cross) {
+                                    io = INSTATE_OUTTAKE.LIFT;
+                                }
+                                break; 
+                            } 
+                            case LIFT: {
+                                DriveLift(outtake_positions[0], outtake_power[0]);
 
-                        iM.setPower(intake_power[0]);
-                        oM1.setPower(intake_power[1]);
-                        oM2.setPower(intake_power[2]);
+                                if(oM1.getCurrentPosition() >= outtake_positions[0] - 30) {
+                                    io = INSTATE_OUTTAKE.LIFT;
+                                }
+                                break;
+                            }
+                            case TURN: {
+                                if (t == -1) {
+                                    gPS.setPosition(outtake_positions[1]); 
 
-                        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                                    t = getRuntime(); 
+                                }
+                                if (t != -1 && getRuntime() - t > 0.2) {
+                                    t = -1;
+                                    io = INSTATE_OUTTAKE.DROP; 
+                                }
+                                break;
+                            }
+                            case DROP: {
+                                if (t == -1) {
+                                    gC1.setPosition(outtake_positions[2]); 
+                                    gC2.setPosition(outtake_positions[3]); 
 
-                        pitchServo.setPosition(intake_positions[3]);
-                        yawServo.setPosition(intake_positions[4]);
-                        c1.setPosition(intake_positions[5]);
-                        c2.setPosition(intake_positions[6]); 
+                                    t = getRuntime(); 
+                                }
+                                if (t != -1 && getRuntime() - t > 0.2) {
+                                    t = -1;
 
+                                    DriveLift(homes[1], homes_power[1]);
+                                    gPS.setPosition(homes[2]);
+                                    gC1.setPosition(homes[3]);
+                                    gC2.setPosition(homes[4]); 
+
+                                    io = INSTATE_OUTTAKE.WAIT; 
+
+                                    current_claw_state = CLAW_STATE.STARTING; 
+                                }
+                                break;
+                            }
+                        }
                         break;
                     }
                 }
@@ -282,39 +389,6 @@ public class NewMain extends LinearOpMode {
                 if (gamepad1.dpad_up){
                     current_claw_state = CLAW_STATE.HANG;
                 }
-
-                /*
-                if(gamepad1.right_bumper) {
-                    iM.setTargetPosition(1577);
-                    iM.setPower(1);
-                    iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                else if (gamepad1.left_bumper){
-                    iM.setTargetPosition(10);
-                    iM.setPower(1);
-                    iM.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-
-                if(gamepad1.triangle) {
-                    oM2.setTargetPosition(4200);
-                    oM2.setPower(1);
-                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                if (gamepad1.cross) {
-                    oM1.setTargetPosition(4200);
-                    oM1.setPower(1);
-                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                if(gamepad1.square) {
-                    oM2.setTargetPosition(0);
-                    oM2.setPower(1);
-                    oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                if (gamepad1.circle) {
-                    oM1.setTargetPosition(0);
-                    oM1.setPower(1);
-                    oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }*/ 
 
                 telemetry.addData("iM", iM.getCurrentPosition());
                 telemetry.addData("oM1", oM1.getCurrentPosition());
