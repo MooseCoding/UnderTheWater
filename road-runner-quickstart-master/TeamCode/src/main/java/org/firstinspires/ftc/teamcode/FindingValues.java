@@ -80,11 +80,16 @@ public class FindingValues extends LinearOpMode {
                 Point[] rectPoints = new Point[4];
                 rotatedRect.points(rectPoints);
 
-                for (int j = 0; j < 4; j++) {
-                    Imgproc.line(img, rectPoints[j], rectPoints[(j + 1) % 4], new Scalar(0, 255, 0), 2);
+
+                if(rotatedRect.size.height > 100 && rotatedRect.size.width > 100) {
+                    for (int j = 0; j < 4; j++) {
+                        Imgproc.line(img, rectPoints[j], rectPoints[(j + 1) % 4], new Scalar(0, 255, 0), 2);
+                    }
                 }
 
-                samples.add(new Sample(rotatedRect, color));
+                if (samples.isEmpty()) {
+                    samples.add(new Sample(rotatedRect, color));
+                }
             }
         }
     }
@@ -99,18 +104,15 @@ public class FindingValues extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            //armMotor =hardwareMap.dcMotor.get("armMotor");
-            //liftMotor =hardwareMap.dcMotor.get("liftMotor");
+            armMotor =hardwareMap.dcMotor.get("armMotor");
+            liftMotor =hardwareMap.dcMotor.get("liftMotor");
 
             //c1 = hardwareMap.servo.get("leftServo");
             //c2 = hardwareMap.servo.get("rightServo");
             //yawServo = hardwareMap.servo.get("yawServo");
             //pitchServo = hardwareMap.servo.get("pitchServo");
 
-            //armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            //armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            //armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
             // Initalize the Camera, and Camera ID
             /*
@@ -149,9 +151,6 @@ public class FindingValues extends LinearOpMode {
 
                 @Override
                 public Object processFrame(Mat frame, long captureTimeNanos) {
-                    findRectanglesByColor(frame, lowerBlue, upperBlue, Color.BLUE);
-                    findRectanglesByColor(frame, lowerRed1, upperRed1, Color.RED);
-                    findRectanglesByColor(frame, lowerRed2, upperRed2, Color.RED);
                     findRectanglesByColor(frame, lowerYellow, upperYellow, Color.YELLOW);
 
                     return null;
@@ -167,29 +166,25 @@ public class FindingValues extends LinearOpMode {
 
             waitForStart();
             while(opModeIsActive()) {
-                if (gamepad1.a && !g.a) {
-                    c1.setPosition(0);
-                    c2.setPosition(1);
-                    yawServo.setPosition(0.9);
-                    pitchServo.setPosition(0.2);
-                }
-                if (gamepad1.b && !g.b) {
-                    c1.setPosition(0.3);
-                    c2.setPosition(0.7);
-                    yawServo.setPosition(0.5);
-                    pitchServo.setPosition(-0.2);
+                if (!samples.isEmpty()) {
+
                 }
 
-
-
-                /*
-                    if (gamepad1.x && !g.x) {
-                        yawServo.setPosition(0);
-                    }
-                    if (gamepad1.y && !g.y) {
-                        pitchServo.setPosition(0);
-                    }
-                 */
+                if(gamepad1.a) {
+                    liftMotor.setTargetPosition(1000);
+                    liftMotor.setPower(0.5);
+                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                if(gamepad1.b) {
+                    liftMotor.setTargetPosition(0);
+                    liftMotor.setPower(0.5);
+                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                if(gamepad1.triangle) {
+                    armMotor.setTargetPosition(200);
+                    armMotor.setPower(0.7);
+                    armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
 
                 /*if(gamepad1.right_trigger > 0) {
                     armMotor.setTargetPosition(-600);
@@ -219,7 +214,7 @@ public class FindingValues extends LinearOpMode {
                 }*/
 
                 telemetry.addData("aM", armMotor.getCurrentPosition());
-                telemetry.addData("aMTa", armMotor.getTargetPosition());
+                telemetry.addData("lM", liftMotor.getCurrentPosition());
                 telemetry.update();
 
                 g.copy(gamepad1);
