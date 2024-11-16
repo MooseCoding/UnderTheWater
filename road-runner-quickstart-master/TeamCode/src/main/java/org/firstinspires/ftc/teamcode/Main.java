@@ -52,8 +52,8 @@ public class Main extends LinearOpMode {
 
     private CLAW_STATE current_claw_state;
 
-    private double[] hang_positions = {800, 400};
-    private double[] hang_positions_final = {900, -12500};
+    private int[] hang_positions = {800, 13000};
+    private int[] hang_positions_final = {1000, 0};
 
 
     @Override
@@ -112,11 +112,11 @@ public class Main extends LinearOpMode {
                     case HANG: {
                         if(!hang_state) {
 
-                            liftMotor.setTargetPosition(hang_positions[0]);
-                            armMotor.setTargetPosition(hang_positions[1]);
+                            liftMotor.setTargetPosition(hang_positions[1]);
+                            armMotor.setTargetPosition(hang_positions[0]);
 
                             armMotor.setPower(0.8);
-                            liftMotor.setTargetPosition(0.8);
+                            liftMotor.setPower(0.8);
 
                             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
@@ -125,11 +125,11 @@ public class Main extends LinearOpMode {
                         }
 
                         if(hang_state && gamepad1.dpad_down) {
-                            liftMotor.setTargetPosition(hang_positions_final[0]);
-                            armMotor.setTargetPosition(hang_positions_final[1]);
+                            liftMotor.setTargetPosition(hang_positions_final[1]);
+                            armMotor.setTargetPosition(hang_positions_final[0]);
 
                             armMotor.setPower(0.8);
-                            liftMotor.setTargetPosition(0.8);
+                            liftMotor.setPower(0.8);
 
                             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
@@ -143,10 +143,9 @@ public class Main extends LinearOpMode {
                     current_claw_state = CLAW_STATE.HANG;
                 }
 
-                telemetry.addData("fLP",leftFrontPower);
-                telemetry.addData("fRP", rightFrontPower);
-                telemetry.addData("bLP", leftBackPower);
-                telemetry.addData("bRP", rightBackPower);
+                telemetry.addData("am", armMotor.getCurrentPosition());
+                telemetry.addData("lp", liftMotor.getCurrentPosition());
+
 
                 telemetry.update();
             }
