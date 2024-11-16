@@ -67,22 +67,9 @@ public class NewMain extends LinearOpMode {
 
     public static ArrayList<Sample> samples = new ArrayList<>();
 
-    public void DriveLift(double power, double position) {
-        oM1.setTargetPosition(position);
-        oM2.setTargetPosition(position);
+    
 
-        oM1.setPower(power);
-        oM2.setPower(power);
-
-        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    public void ExtendIntake(double power, double position) {
-        iM.setTargetPosition(position);
-        iM.setPower(power);
-        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
-    }
+  
 
     public static void findRectanglesByColor(Mat img, Scalar lowerBound, Scalar upperBound, Color color) {
         // Convert the image to HSV
