@@ -5,11 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class NewValues extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
     private DcMotorEx iM, oM1, oM2;
+    private Servo outtakeClaw1, outtakeClaw2, outtakePitch;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -20,6 +23,10 @@ public class NewValues extends LinearOpMode {
         iM = (DcMotorEx) hardwareMap.dcMotor.get("intake");
         oM1 = (DcMotorEx) hardwareMap.dcMotor.get("outtake1");
         oM2 = (DcMotorEx) hardwareMap.dcMotor.get("outtake2");
+
+        outtakeClaw1 = hardwareMap.servo.get("gS1");
+        outtakeClaw2 = hardwareMap.servo.get("gS2");
+        outtakePitch = hardwareMap.servo.get("gPS");
 
         fR.setDirection(DcMotorSimple.Direction.REVERSE);
         bL.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -56,11 +63,21 @@ public class NewValues extends LinearOpMode {
             bR.setPower(rightBackPower);
             fR.setPower(rightFrontPower);
             if(gamepad1.cross) {
-                iM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                outtakeClaw1.setPosition(0.45);
+                outtakeClaw2.setPosition(-1);
             }
             if (gamepad1.square) {
-                oM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                outtakeClaw1.setPosition(-0.3);
+                outtakeClaw2.setPosition(0.45);
+            }
+            if(gamepad1.circle) {
+                outtakeClaw1.setPosition(1);
+            }
+            if(gamepad1.right_bumper) {
+                outtakePitch.setPosition(0);
+            }
+            if(gamepad1.left_bumper) {
+                outtakePitch.setPosition(0.5);
             }
 
             telemetry.addData("om", oM1.getCurrentPosition());

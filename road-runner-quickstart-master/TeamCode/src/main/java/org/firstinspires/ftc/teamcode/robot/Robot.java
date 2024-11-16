@@ -1,21 +1,28 @@
 package org.firstinspires.ftc.teamcode.robot; 
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import java.util.ArrayList;
+import java.util.List;
 
 import org.firstinspires.ftc.teamcode.vision.Sample;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 
 public class Robot {
     // Lynx modules
     final int TEST_CYCLES = 500;
     private int cycles = 0; 
     private double t1; 
-    private ElpasedTime timer = new ElpasedTime();
+    private ElapsedTime timer = new ElapsedTime();
     private double e1,e2,e3,e4;
     private double v1,v2,v3,v4;
 
@@ -57,12 +64,14 @@ public class Robot {
         TURN,
         DROP,
     }
+    
+    private CLAW_STATE current_claw_state = CLAW_STATE.INTAKE; 
 
     private INSTATE_INTAKE ii = INSTATE_INTAKE.OUT;
-    private INSTATE_TRANSFER it = INSTATE_TRANSFER.ROTATE; 
-    private INSTATE_OUTTAKE io = INSTATE_OUTTAKE.WAIT;  
+    private INSTATE_TRANSFER it = INSTATE_TRANSFER.TRANSFER1; 
+    private INSTATE_OUTTAKE io = INSTATE_OUTTAKE.LIFT;  
 
-    public void init() {
+    public void init(HardwareMap hardwareMap) {
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule hub: hubs) {
@@ -98,7 +107,7 @@ public class Robot {
         oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public void DriveLift(double power, double position) {
+    public void DriveLift(double power, int position) {
         oM1.setTargetPosition(position);
         oM2.setTargetPosition(position);
 
@@ -110,16 +119,16 @@ public class Robot {
     }
 
     public boolean alignClaw(ArrayList<Sample> samples) {
-
+        return true;
     }
 
-    public void ExtendIntake(double power, double position) {
+    public void ExtendIntake(double power, int position) {
         iM.setTargetPosition(position);
         iM.setPower(power);
         iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
     }
 
-    public void loop_func(Gamepad g, ArrayList<Sample> samples) {
+    public void loop_func(Gamepad g, ArrayList<Sample> samples, double RUNTIME) {
         
         // Drivetrain Movement Code
         double max;
@@ -180,14 +189,14 @@ public class Robot {
 
                         if(aligned && g.right_bumper) {
                             intakeClaw.setPosition(0.0);
-                            t = getRuntime(); 
+                            t = RUNTIME; 
                             ii = INSTATE_INTAKE.MOVEBACK; 
                         }
 
                         break; 
                     }
                     case MOVEBACK: {
-                        if(!(iM.getCurrentPosition()<50) && (getRuntime() - t > 0.3)) {
+                        if(!(iM.getCurrentPosition()<50) && (RUNTIME - t > 0.3)) {
                             intakePitch.setPosition(0.0);
                             intakeYaw.setPosition(0.0);
 
@@ -213,10 +222,10 @@ public class Robot {
                         outtakePitch.setPosition(0.0); // Resting at home
                         
                         if(t==-1) {
-                            t = getRuntime();
+                            t = RUNTIME;
                         }
 
-                        if(t != -1 && getRuntime() - t > 0.4) {
+                        if(t != -1 && RUNTIME - t > 0.4) {
                             outtakeClaw.setPosition(0.0); // Close the claw on the sample
                             t = -1;
                             it = INSTATE_TRANSFER.TRANSFER2; 
@@ -229,10 +238,10 @@ public class Robot {
 
                         if (t == -1) {
                             outtakePitch.setPosition(0.0); // Move the outtake pitch back up
-                            t = getRuntime();
+                            t = RUNTIME;
                         }   
 
-                        if (t != -1 && getRuntime() - t > 0.3 && g.cross) {
+                        if (t != -1 && RUNTIME - t > 0.3 && g.cross) {
                             it = INSTATE_TRANSFER.TRANSFER1;
                             current_claw_state = CLAW_STATE.OUTTAKE; 
                         }
@@ -257,10 +266,10 @@ public class Robot {
                         outtakePitch.setPosition(0.0); // Making sure that the pitch is aligned to drop it
 
                         if (t==-1) {
-                            t = getRuntime();
+                            t = RUNTIME;
                         }
 
-                        if (t!=-1 && getRuntime() - t > 0.3 && g.cross) {
+                        if (t!=-1 && RUNTIME - t > 0.3 && g.cross) {
                             t = -1;
                             io = INSTATE_OUTTAKE.DROP; 
                         }
@@ -271,10 +280,10 @@ public class Robot {
                         outtakeClaw.setPosition(0.0); // Drop the sample into the thingy
                         
                         if(t==-1) {
-                            t = getRuntime();
+                            t = RUNTIME;
                         }
 
-                        if(t != -1 && (getRuntime() - t > 0.3)) {
+                        if(t != -1 && (RUNTIME - t > 0.3)) {
                             t = -1;
                             outtakeClaw.setPosition(0.0); // Reset the position
                             outtakePitch.setPosition(0.0); // Reset the position
@@ -293,7 +302,7 @@ public class Robot {
             }
         }
 
-        if(g.dpad_up || getRuntime() > 90) {
+        if(g.dpad_up || RUNTIME > 90) {
             ENDGAME = true; 
         }
     }
@@ -302,13 +311,13 @@ public class Robot {
 
     }
 
-    public void displayCycleTimes(string status) {
+    public void displayCycleTimes(String status) {
         telemetry.addData("Testing", status);
         telemetry.addData("CACHE = MANUAL", "%5.1f mS/cycle", t1);
         telemetry.update(); 
     }
 
-    public void testLynx() {
+    public void testLynx(HardwareMap hardwareMap) {
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
 
         fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
@@ -319,7 +328,7 @@ public class Robot {
         displayCycleTimes("Manual Lynx Control");
 
         for(LynxModule module: hubs) {
-            module.setBulkCachingMOde(LynxModule.BulkCachingMode.MANUAL);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
         timer.reset();

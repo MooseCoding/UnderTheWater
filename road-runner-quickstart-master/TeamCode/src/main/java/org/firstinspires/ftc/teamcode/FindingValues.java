@@ -185,6 +185,7 @@ public class FindingValues extends LinearOpMode {
                     gC2.setPosition(0);
                 }
 
+
                 telemetry.update();
 
                 g.copy(gamepad1);
