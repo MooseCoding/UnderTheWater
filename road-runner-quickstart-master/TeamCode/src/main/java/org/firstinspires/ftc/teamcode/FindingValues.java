@@ -51,6 +51,8 @@ public class FindingValues extends LinearOpMode {
     private Gamepad g = new Gamepad();
     private DcMotor liftMotor, armMotor;
     private Servo c1, c2, yawServo, pitchServo;
+    private Servo gC1, gC2, gPS;
+
     private OpenCvCamera camera;
     private int cID;
     public static ArrayList<Sample> samples = new ArrayList<>();
@@ -104,15 +106,11 @@ public class FindingValues extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            armMotor =hardwareMap.dcMotor.get("armMotor");
-            liftMotor =hardwareMap.dcMotor.get("liftMotor");
 
             //c1 = hardwareMap.servo.get("leftServo");
             //c2 = hardwareMap.servo.get("rightServo");
             //yawServo = hardwareMap.servo.get("yawServo");
             //pitchServo = hardwareMap.servo.get("pitchServo");
-
-            armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
             // Initalize the Camera, and Camera ID
             /*
@@ -164,57 +162,29 @@ public class FindingValues extends LinearOpMode {
 
             mVP = mVPB.build();
 
+            gC1 = hardwareMap.servo.get("gS1");
+            gC2 = hardwareMap.servo.get("gS2");
+            gPS = hardwareMap.servo.get("gPS");
+
+
             waitForStart();
             while(opModeIsActive()) {
                 if (!samples.isEmpty()) {
 
                 }
 
-                if(gamepad1.a) {
-                    liftMotor.setTargetPosition(1000);
-                    liftMotor.setPower(0.5);
-                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if(gamepad1.cross) {
+                    gC1.setPosition(0);
+                    gC2.setPosition(-1);
                 }
-                if(gamepad1.b) {
-                    liftMotor.setTargetPosition(0);
-                    liftMotor.setPower(0.5);
-                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if(gamepad1.square) {
+                    gPS.setPosition(0);
                 }
                 if(gamepad1.triangle) {
-                    armMotor.setTargetPosition(200);
-                    armMotor.setPower(0.7);
-                    armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    gC1.setPosition(0);
+                    gC2.setPosition(0);
                 }
 
-                /*if(gamepad1.right_trigger > 0) {
-                    armMotor.setTargetPosition(-600);
-                    liftMotor.setTargetPosition(6000);
-                    armMotor.setPower(0.5);
-                    liftMotor.setPower(1);
-                    //armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    //liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
-                else if (gamepad1.left_trigger > 0) {
-                    liftMotor.setPower(-1);
-                }
-                else {
-                     liftMotor.setPower(0);
-                }
-
-                if (gamepad1.dpad_up) {
-                    liftMotor.setTargetPosition(6000);
-                    liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                    liftMotor.setPower(0.5);
-                }
-
-                if (g.a) {
-                    armMotor.setTargetPosition(-1300);
-
-                }*/
-
-                telemetry.addData("aM", armMotor.getCurrentPosition());
-                telemetry.addData("lM", liftMotor.getCurrentPosition());
                 telemetry.update();
 
                 g.copy(gamepad1);

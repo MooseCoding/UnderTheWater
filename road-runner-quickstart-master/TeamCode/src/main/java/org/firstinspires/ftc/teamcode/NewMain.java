@@ -1,21 +1,39 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Canvas;
+import android.util.Size;
+
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import java.util.ArrayList;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.vision.Color;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.robotPipeline;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+
 
 @Photon
 @TeleOp
@@ -50,16 +68,15 @@ public class NewMain extends LinearOpMode {
     private CLAW_STATE current_claw_state;
 
     private double[] homes = {0,0,  0,0,0}; //intake, lift, gps, gc1, gc2, 
-    private double[] homes_power = {0.7,1}; 
-
-    private double[] intake_positions = {0,0,0,0,0}; // in order: intake -> pitch servo -> yaw servo -> c1 -> c2
+    private double[] homes_power = {0.7,1};
+    private double[] intake_positions = {1500,0.6,0.55,  0,1}; // in order: intake -> pitch servo -> yaw servo -> c1 -> c2
     private double[] intake_power = {0.8}; 
 
-    private double[] grab_positions = {0,0,0,0}; //  pitch -> yaw -> c1 -> c2
+    private double[] grab_positions = {0,0.55,1,-1}; //  pitch -> yaw -> c1 -> c2
 
-    private double[] trans_positions = { 0,0,0,  0,0,0,0 , 0}; // gPS -> gC1 -> gC2 -> pitch -> yaw -> c1 -> c2 -> lift
+    private double[] trans_positions = {0,  1,-1,  0 ,0.55,0,-1  , 0}; // gPS -> gC1 -> gC2 -> pitch -> yaw -> c1 -> c2 -> lift
 
-    private double[] outtake_positions = {0,0,0,0}; // lift -> pitch (grab) -> c1 (g) -> c2 (g)
+    private double[] outtake_positions = {3500,0.6428  ,0,0}; // 3850,  lift -> pitch (grab) -> c1 (g) -> c2 (g)
     private double[] outtake_power = {1};
  
     private OpenCvCamera camera;
@@ -67,7 +84,7 @@ public class NewMain extends LinearOpMode {
 
     public static ArrayList<Sample> samples = new ArrayList<>();
 
-    public void DriveLift(double power, double position) {
+    public void DriveLift(int position, double power) {
         oM1.setTargetPosition(position);
         oM2.setTargetPosition(position);
 
@@ -78,7 +95,7 @@ public class NewMain extends LinearOpMode {
         oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    public void ExtendIntake(double power, double position) {
+    public void ExtendIntake(int position, double power) {
         iM.setTargetPosition(position);
         iM.setPower(power);
         iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
@@ -171,8 +188,9 @@ public class NewMain extends LinearOpMode {
             
             current_claw_state = CLAW_STATE.STARTING;
 
-            bR.setDirection(DcMotorSimple.Direction.REVERSE);
             fR.setDirection(DcMotorSimple.Direction.REVERSE);
+            bL.setDirection(DcMotorSimple.Direction.REVERSE);
+            bR.setDirection(DcMotorSimple.Direction.REVERSE);
             iM.setDirection(DcMotorSimple.Direction.REVERSE);
             oM2.setDirection(DcMotorSimple.Direction.REVERSE);
             
@@ -220,7 +238,7 @@ public class NewMain extends LinearOpMode {
                 // Drivetrain
                 double max;
 
-                double axial = -gamepad1.left_stick_y;
+                double axial = gamepad1.left_stick_y;
                 double lateral = gamepad1.left_stick_x;
                 double yaw = gamepad1.right_stick_x;
 
@@ -249,13 +267,13 @@ public class NewMain extends LinearOpMode {
                 // FSM for the claw
                 switch(current_claw_state) {
                     case STARTING: {
-                        if(gamepad1.right_bumper > 0) {
-                            ExtendIntake(intake_positions[0], intake_power[0]);
+                        if(gamepad1.right_bumper) {
+                            ExtendIntake((int) intake_positions[0], intake_power[0]);
                             
                             pitchServo.setPosition(intake_positions[1]);
                             yawServo.setPosition(intake_positions[2]);
                             c1.setPosition(intake_positions[3]);
-                            c2.setPosition(grab_positions[4]); 
+                            c2.setPosition(intake_positions[4]);
 
                             current_claw_state = CLAW_STATE.INTAKE; 
                         }
@@ -268,13 +286,16 @@ public class NewMain extends LinearOpMode {
 
                                 t = getRuntime(); 
                             }
+                            else if(gamepad1.left_trigger > 0) {
+                                current_claw_state = CLAW_STATE.STARTING;
+                            }
 
-                            if (t != -1 && getRuntime() - t > 0.5) {
+                            if (t != -1 && getRuntime() - t > 1) {
                                 pitchServo.setPosition(grab_positions[0]);
                                 t = -1; 
 
-                                DriveLift(trans_positions[7], homes_power[1]); 
-                                ExtendIntake(homes[0], homes_power[0]);
+                                DriveLift((int) trans_positions[7], homes_power[1]);
+                                ExtendIntake((int) homes[0], homes_power[0]);
                                 current_claw_state = CLAW_STATE.GRAB; 
                             }
                         break;
@@ -283,7 +304,7 @@ public class NewMain extends LinearOpMode {
                         switch(ig) {
                             case WAIT: {
                                 if (iM.getCurrentPosition() <= homes[0] + 20) {
-                                    DriveLift(homes[1], homes_power[1]);
+                                    DriveLift((int) homes[1], homes_power[1]);
                                     ig = INSTATE_GRAB.GCS; 
                                 }
                                 break; 
@@ -296,7 +317,7 @@ public class NewMain extends LinearOpMode {
                                     t = getRuntime(); 
                                 }
 
-                                if (t != -1 && getRuntime - t > 0.2 ) {
+                                if (t != -1 && getRuntime() - t > 0.2 ) {
                                     t = -1; 
                                     ig = INSTATE_GRAB.CS; 
                                 }
@@ -343,10 +364,10 @@ public class NewMain extends LinearOpMode {
                                 break; 
                             } 
                             case LIFT: {
-                                DriveLift(outtake_positions[0], outtake_power[0]);
+                                DriveLift((int) outtake_positions[0], outtake_power[0]);
 
                                 if(oM1.getCurrentPosition() >= outtake_positions[0] - 30) {
-                                    io = INSTATE_OUTTAKE.LIFT;
+                                    io = INSTATE_OUTTAKE.TURN;
                                 }
                                 break;
                             }
@@ -364,15 +385,17 @@ public class NewMain extends LinearOpMode {
                             }
                             case DROP: {
                                 if (t == -1) {
-                                    gC1.setPosition(outtake_positions[2]); 
-                                    gC2.setPosition(outtake_positions[3]); 
+                                    if(gamepad1.cross) {
+                                        gC1.setPosition(outtake_positions[2]);
+                                        gC2.setPosition(outtake_positions[3]);
 
-                                    t = getRuntime(); 
+                                        t = getRuntime();
+                                    }
                                 }
                                 if (t != -1 && getRuntime() - t > 0.2) {
                                     t = -1;
 
-                                    DriveLift(homes[1], homes_power[1]);
+                                    DriveLift((int) homes[1], homes_power[1]);
                                     gPS.setPosition(homes[2]);
                                     gC1.setPosition(homes[3]);
                                     gC2.setPosition(homes[4]); 
