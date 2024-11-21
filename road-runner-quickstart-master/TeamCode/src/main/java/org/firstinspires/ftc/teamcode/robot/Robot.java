@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.tel
 import java.util.ArrayList;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -66,13 +67,18 @@ public class Robot {
     }
     
     private CLAW_STATE current_claw_state = CLAW_STATE.INTAKE; 
+    private MecanumDrive d; 
 
     private INSTATE_INTAKE ii = INSTATE_INTAKE.OUT;
     private INSTATE_TRANSFER it = INSTATE_TRANSFER.TRANSFER1; 
     private INSTATE_OUTTAKE io = INSTATE_OUTTAKE.LIFT;  
 
+    private List<LynxModule> hubs = new List<>(); 
+
     public void init(HardwareMap hardwareMap) {
-        List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
+        d = new MecanumDrive(hardwareMap); 
+
+        hubs = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule hub: hubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);  
@@ -128,8 +134,16 @@ public class Robot {
         iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
     }
 
+    public void Transition() {
+         
+    }
+
     public void loop_func(Gamepad g, ArrayList<Sample> samples, double RUNTIME) {
-        
+        // Clearing the hub bulk cache
+        for(LynxModule module: hubs) {
+            module.clearBulkCache(); 
+        }
+
         // Drivetrain Movement Code
         double max;
 
