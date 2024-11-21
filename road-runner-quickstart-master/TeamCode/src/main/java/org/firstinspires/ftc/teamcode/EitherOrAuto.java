@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.roadrunner.PoseStorage.currentPose;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -20,6 +22,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.PoseStorage;
 import org.firstinspires.ftc.teamcode.robot.Lift;
 import org.firstinspires.ftc.teamcode.vision.Color;
 import org.firstinspires.ftc.teamcode.vision.Sample;
@@ -41,9 +44,10 @@ public class EitherOrAuto extends LinearOpMode {
     private AUTO color = AUTO.RED;
 
 
-
     @Override
     public void runOpMode() throws InterruptedException {
+        MecanumDrive d = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+
         while(!isStopRequested()) {
             Lift lift = new Lift(hardwareMap);
 
@@ -64,6 +68,8 @@ public class EitherOrAuto extends LinearOpMode {
 
                 }
             }
+
+            currentPose = d.pose;
         }
     }
 }
