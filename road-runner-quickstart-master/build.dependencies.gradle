@@ -16,7 +16,7 @@ dependencies {
 
     /implementation ('com.acmerobotics.dashboard:dashboard:0.4.16') {
         exclude group: 'org.firstinspires.ftc'
-    }
-    implementation 'com.github.Thermal-Equilibrium:homeostasis-FTC:1.0.8'/
+    }/
+    implementation 'com.github.Thermal-Equilibrium:homeostasis-FTC:1.0.6'
 }
 
