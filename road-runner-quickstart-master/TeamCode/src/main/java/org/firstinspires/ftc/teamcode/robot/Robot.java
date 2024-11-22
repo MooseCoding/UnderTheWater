@@ -8,6 +8,7 @@ import java.util.List;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -73,10 +74,10 @@ public class Robot {
     private INSTATE_TRANSFER it = INSTATE_TRANSFER.TRANSFER1; 
     private INSTATE_OUTTAKE io = INSTATE_OUTTAKE.LIFT;  
 
-    private List<LynxModule> hubs = new List<>(); 
+    private List<LynxModule> hubs;
 
     public void init(HardwareMap hardwareMap) {
-        d = new MecanumDrive(hardwareMap); 
+        d = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
         hubs = hardwareMap.getAll(LynxModule.class);
 
