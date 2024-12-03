@@ -24,8 +24,8 @@ class FullController(
     kA: Double,
     kS: Double
 ) {
-    private val system: PositionVelocitySystem
-    val motor: DcMotorEx
+    private var system: PositionVelocitySystem
+    var motor: DcMotorEx
     var target: Double = 0.0
     var v1: Double? = null
     var v2: Double? = null
@@ -34,29 +34,29 @@ class FullController(
     var acl: Double? = null
     var i: Int = 0
     var motorVelocity: DoubleSupplier
-    val motorPosition: DoubleSupplier
+    var motorPosition: DoubleSupplier
 
     init {
         this.motor = motor
 
-        val Q: Double = q
-        val R: Double = r
-        val N: Int = n
+        var Q: Double = q
+        var R: Double = r
+        var N: Int = n
 
-        val posCoefficients = PIDCoefficients(posKP, posKI, posKD)
-        val veloCoefficients = PIDCoefficients(velKP, velKI, velKD)
+        var posCoefficients = PIDCoefficients(posKP, posKI, posKD)
+        var veloCoefficients = PIDCoefficients(velKP, velKI, velKD)
 
-        val posControl = BasicPID(posCoefficients)
-        val veloControl = BasicPID(veloCoefficients)
+        var posControl = BasicPID(posCoefficients)
+        var veloControl = BasicPID(veloCoefficients)
 
         motorPosition = DoubleSupplier { motor.currentPosition.toDouble() ?: 0.0 }
         motorVelocity = DoubleSupplier { motor.velocity ?: 0.0 }
 
-        val positionFilter = KalmanEstimator(motorPosition, Q, R, N)
-        val velocityFilter = KalmanEstimator(motorVelocity, Q, R, N)
+        var positionFilter = KalmanEstimator(motorPosition, Q, R, N)
+        var velocityFilter = KalmanEstimator(motorVelocity, Q, R, N)
 
-        val coefficientsFF = FeedforwardCoefficients(kV, kA, kS)
-        val feedforward = BasicFeedforward(coefficientsFF)
+        var coefficientsFF = FeedforwardCoefficients(kV, kA, kS)
+        var feedforward = BasicFeedforward(coefficientsFF)
 
         system = PositionVelocitySystem(positionFilter, velocityFilter, feedforward, posControl, veloControl)
     }
@@ -87,10 +87,6 @@ class FullController(
         if(v1 != null && v2 != null) {
             acl = (v2!!-v1!!)/(t2!!-t1!!)
         }
-    }
-
-    fun setTarget(newTarget: Double) {
-        this.target = newTarget
     }
 }
 

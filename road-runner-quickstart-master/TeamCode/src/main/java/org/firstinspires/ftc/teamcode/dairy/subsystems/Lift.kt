@@ -9,11 +9,18 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.subsystems.Template.Attach
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
 import org.firstinspires.ftc.teamcode.dairy.control.FullController
+import java.lang.annotation.Inherited
 
 @Config
 class Lift private constructor() : Subsystem {
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(AnnotationTarget.CLASS)
+    @MustBeDocumented
+    @Inherited
+    annotation class Attach
+
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
@@ -73,7 +80,7 @@ class Lift private constructor() : Subsystem {
     }
 
         fun pidUpdate() {
-            pid?.setTarget(target.toDouble()) // Set the target for FullController
+            pid!!.target = target // Set the target for FullController
 
             // Check for null values before using them
             outtake1?.let { motor ->
@@ -94,7 +101,7 @@ class Lift private constructor() : Subsystem {
             return Lambda("set pid target")
                 .setExecute {
                     target = to.toDouble()
-                    pid?.setTarget(target.toDouble()) // Update target in controller
+                    pid!!.target = target    // Update target in controller
                 }
         }
 

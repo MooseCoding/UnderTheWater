@@ -7,29 +7,25 @@ import com.acmerobotics.roadrunner.Action;
 
 import org.firstinspires.ftc.teamcode.robot.Lift;
 
-public class LiftDown implements Action {
+public class Ascent implements Action {
     private boolean init = false;
-    private Lift lift;
+    private Lift claw;
+
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
         if(!init) {
-            lift.home();
+            Lift.target = 1000;
             init = true;
         }
 
-       if(lift.oM1.getCurrentPosition() > 200) {
-           lift.update();
-           return true;
-       }
-
-        return false;
+        return claw.oM1.getCurrentPosition() < 800;
     }
 
-    public LiftDown(Lift li) {
-        lift = li;
+    public Ascent(Lift li) {
+        claw = li;
     }
 
-    public Action liftDown(Lift li) {
-        return new LiftDown(li);
+    public Action ascent(Lift li) {
+        return new Ascent(li);
     }
 }

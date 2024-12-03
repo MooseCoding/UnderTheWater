@@ -20,19 +20,21 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 public class Robot {
+
     // Lynx modules
     final int TEST_CYCLES = 500;
-    private int cycles = 0; 
-    private double t1; 
+    private int cycles = 0;
+    private double t1;
     private ElapsedTime timer = new ElapsedTime();
     private double e1,e2,e3,e4;
     private double v1,v2,v3,v4;
 
     // Robot motors & servos
     private DcMotorEx fL, fR, bL, bR;
-    private DcMotorEx iM, oM1, oM2;
-    private Servo intakeClaw, intakeYaw, intakePitch;
-    private Servo outtakeClaw, outtakePitch; 
+
+    // Subsystems
+    private Lift l;
+    private Intake i;
 
     // Vision detection vars
     private boolean aligned = false; 
@@ -77,6 +79,9 @@ public class Robot {
     private List<LynxModule> hubs;
 
     public void init(HardwareMap hardwareMap) {
+        l = new Lift(hardwareMap);
+        i = new Intake(hardwareMap);
+
         d = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
         hubs = hardwareMap.getAll(LynxModule.class);
@@ -90,49 +95,14 @@ public class Robot {
         bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
         fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
         bR = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
-        iM = (DcMotorEx) hardwareMap.dcMotor.get("intake");
-        oM1 = (DcMotorEx) hardwareMap.dcMotor.get("outtake1");
-        oM2 = (DcMotorEx) hardwareMap.dcMotor.get("outtake2");
 
-        intakeClaw = hardwareMap.servo.get("clawServo");
-        intakePitch = hardwareMap.servo.get("pitchServo");
-        intakeYaw = hardwareMap.servo.get("yawServo");
-
-        outtakeClaw = hardwareMap.servo.get("outtakeClaw");
-        outtakePitch = hardwareMap.servo.get("outtakePitch");
-
+        fL.setDirection(DcMotorSimple.Direction.REVERSE);
+        bL.setDirection(DcMotorSimple.Direction.REVERSE);
         bR.setDirection(DcMotorSimple.Direction.REVERSE);
-        fR.setDirection(DcMotorSimple.Direction.REVERSE);
-        iM.setDirection(DcMotorSimple.Direction.REVERSE);
-        oM2.setDirection(DcMotorSimple.Direction.REVERSE);
-        
-        iM.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        oM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        oM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        oM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-
-    public void DriveLift(double power, int position) {
-        oM1.setTargetPosition(position);
-        oM2.setTargetPosition(position);
-
-        oM1.setPower(power);
-        oM2.setPower(power);
-
-        oM1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        oM2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public boolean alignClaw(ArrayList<Sample> samples) {
         return true;
-    }
-
-    public void ExtendIntake(double power, int position) {
-        iM.setTargetPosition(position);
-        iM.setPower(power);
-        iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
     }
 
     public void Transition() {
@@ -179,22 +149,23 @@ public class Robot {
             case INTAKE: {
                 switch(ii) {
                     case OUT: {
+                        i.clawClose();
+
                         if(g.cross) {
-                            intakePitch.setPosition(0.0);
+                            i.clawOpen();
+                            i.pitchDown();
+                            Intake.pidused = false;
                             ii = INSTATE_INTAKE.GRAB; 
                         }
 
                         if(g.right_trigger > 0) {
-                            iM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                            iM.setPower(0.5);
+                            i.iM.setPower(0.3);
                         }
                         else if(g.left_trigger > 0) {
-                            iM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                            iM.setPower(-0.5);
+                            i.iM.setPower(-0.3);
                         }
                         else {
-                            iM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                            iM.setPower(0);
+                            i.iM.setPower(0);
                         }
 
                         break;
@@ -203,28 +174,27 @@ public class Robot {
                         aligned = alignClaw(samples); 
 
                         if(aligned && g.right_bumper) {
-                            intakeClaw.setPosition(0.0);
-                            t = RUNTIME; 
-                            ii = INSTATE_INTAKE.MOVEBACK; 
+                            i.clawClose();
+                            t=RUNTIME;
+                            ii = INSTATE_INTAKE.MOVEBACK;
                         }
 
                         break; 
                     }
                     case MOVEBACK: {
-                        if(!(iM.getCurrentPosition()<50) && (RUNTIME - t > 0.3)) {
-                            intakePitch.setPosition(0.0);
-                            intakeYaw.setPosition(0.0);
+                        if(t-RUNTIME > 0.3) {
+                            i.pitchUp();
+                            i.cleanYaw();
 
-                            iM.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                            iM.setTargetPosition(0);
-                            iM.setPower(0.6);
-                            iM.setMode(DcMotor.RunMode.RUN_TO_POSITION); 
+                            Intake.pidused = true;
+                            Intake.target = 0;
 
                             t = -1;
                         }
-                        else {
+
+                        if(t==-1) {
                             ii = INSTATE_INTAKE.OUT;
-                            current_claw_state = CLAW_STATE.TRANSFER; 
+                            current_claw_state = CLAW_STATE.TRANSFER;
                         }
 
                         break; 
@@ -234,14 +204,14 @@ public class Robot {
             case TRANSFER: {
                 switch(it) {
                     case TRANSFER1: {
-                        outtakePitch.setPosition(0.0); // Resting at home
-                        
+                        Lift.pitchPos = 0.0;
+
                         if(t==-1) {
                             t = RUNTIME;
                         }
 
                         if(t != -1 && RUNTIME - t > 0.4) {
-                            outtakeClaw.setPosition(0.0); // Close the claw on the sample
+                            l.clawClose();
                             t = -1;
                             it = INSTATE_TRANSFER.TRANSFER2; 
                         }
@@ -249,14 +219,15 @@ public class Robot {
                         break;
                     }
                     case TRANSFER2: {   
-                        intakeClaw.setPosition(0.0); // Release the sample
+                        i.clawOpen();
 
                         if (t == -1) {
-                            outtakePitch.setPosition(0.0); // Move the outtake pitch back up
+                            l.pitchDrop(); // Move the outtake pitch back up to drop it
                             t = RUNTIME;
                         }   
 
-                        if (t != -1 && RUNTIME - t > 0.3 && g.cross) {
+                        if (t != -1 && RUNTIME - t > 0.2 && g.cross) {
+                            t = -1;
                             it = INSTATE_TRANSFER.TRANSFER1;
                             current_claw_state = CLAW_STATE.OUTTAKE; 
                         }
@@ -269,22 +240,16 @@ public class Robot {
             case OUTTAKE: {
                 switch(io){
                     case LIFT: {
-                        DriveLift(1, 3000);
+                        l.sample();
 
-                        if(oM1.getCurrentPosition() >= 2900) {
+                        if(l.oM1.getCurrentPosition() >= 2950) {
                             io = INSTATE_OUTTAKE.TURN;
                         }
 
                         break; 
                     }
                     case TURN: {
-                        outtakePitch.setPosition(0.0); // Making sure that the pitch is aligned to drop it
-
-                        if (t==-1) {
-                            t = RUNTIME;
-                        }
-
-                        if (t!=-1 && RUNTIME - t > 0.3 && g.cross) {
+                        if (g.cross) {
                             t = -1;
                             io = INSTATE_OUTTAKE.DROP; 
                         }
@@ -292,17 +257,16 @@ public class Robot {
                         break;
                     }
                     case DROP: {
-                        outtakeClaw.setPosition(0.0); // Drop the sample into the thingy
-                        
+                        l.clawOpen();
+
                         if(t==-1) {
                             t = RUNTIME;
                         }
 
                         if(t != -1 && (RUNTIME - t > 0.3)) {
                             t = -1;
-                            outtakeClaw.setPosition(0.0); // Reset the position
-                            outtakePitch.setPosition(0.0); // Reset the position
-                            DriveLift(0.8, 0); // Set the lift back to 0
+                            l.pitchHome();
+                            l.home();
 
                             io = INSTATE_OUTTAKE.LIFT;
                             current_claw_state = CLAW_STATE.INTAKE;
@@ -357,7 +321,7 @@ public class Robot {
             e1 = fL.getCurrentPosition();
             e2 = fR.getCurrentPosition();
             e3 = bL.getCurrentPosition();
-            e4 = bR.getCurrentPosition(); 
+            e4 = bR.getCurrentPosition();
 
             v1 = fL.getVelocity();
             v2 = fR.getVelocity();

@@ -5,28 +5,27 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 
-import org.firstinspires.ftc.teamcode.robot.Lift;
+import org.firstinspires.ftc.teamcode.robot.Intake;
 
-public class ClawReturn implements Action {
+public class IntakeOut implements Action {
     private boolean init = false;
-    private Lift claw;
+    private Intake i;
 
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
         if(!init) {
-            claw.pitchHome();
-            claw.clawOpen();
+            Intake.target = 200;
             init = true;
         }
 
-        return false;
+        return i.iM.getCurrentPosition() < 150;
     }
 
-    public ClawReturn(Lift li) {
-        claw = li;
+    public IntakeOut(Intake li) {
+        i = li;
     }
 
-    public Action clawReturn(Lift li) {
-        return new ClawReturn(li);
+    public Action intakeOut(Intake li) {
+        return new IntakeOut(li);
     }
 }

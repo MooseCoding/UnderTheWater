@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems
+package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
@@ -14,7 +14,8 @@ class Template private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
-    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
+    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(
+        Attach::class.java)
 
     override fun preUserInitHook(opMode: Wrapper) {
         defaultCommand = command()

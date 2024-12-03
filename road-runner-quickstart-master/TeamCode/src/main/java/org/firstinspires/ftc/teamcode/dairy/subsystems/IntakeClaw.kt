@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
-import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
@@ -9,12 +8,17 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.control.FullController
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift.Companion
-import org.firstinspires.ftc.teamcode.subsystems.Template.Attach
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
+import java.lang.annotation.Inherited
 
 @Config
 class IntakeClaw private constructor() : Subsystem {
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(AnnotationTarget.CLASS)
+    @MustBeDocumented
+    @Inherited
+    annotation class Attach
+
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {

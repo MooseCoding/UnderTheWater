@@ -14,8 +14,9 @@ public class ClawDrop implements Action {
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
         if(!init) {
+            claw.pitchDrop();
+            claw.clawOpen();
             init = true;
-            claw.dropSample();
         }
 
         return false;
