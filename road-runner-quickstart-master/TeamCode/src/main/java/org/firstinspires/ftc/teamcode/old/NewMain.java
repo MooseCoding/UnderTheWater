@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.util.Size;
 
 import com.outoftheboxrobotics.photoncore.Photon;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,8 +17,8 @@ import java.util.ArrayList;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
-import org.firstinspires.ftc.teamcode.vision.Color;
-import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.robot.vision.Color;
+import org.firstinspires.ftc.teamcode.robot.vision.Sample;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.VisionProcessor;
 import org.opencv.core.Core;
@@ -33,6 +34,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 
 @Photon
 @TeleOp
+@Disabled
 public class NewMain extends LinearOpMode {
     private final Scalar lowerBlue = new Scalar(100, 150, 50);
     private final Scalar upperBlue = new Scalar(130,255,255);

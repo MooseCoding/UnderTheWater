@@ -21,46 +21,49 @@ public class Tuning extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         Lift l = new Lift(hardwareMap);
         Intake i = new Intake(hardwareMap);
+
+        Lift.pidfused = false;
+        Intake.pidused = false;
+
         waitForStart();
 
         while(opModeIsActive() && !isStopRequested()) {
+            if(gamepad1.left_trigger > 0) {
+                Lift.pidfused = true;
+            }
+            else if (gamepad1.right_trigger > 0) {
+                Lift.pidfused = false;
+            }
             if(gamepad1.cross) {
-                Intake.target = 500;
+                l.clawClose();
             }
             if(gamepad1.square) {
-                i.pitchDown();
+                l.pitchDrop();
             }
             if(gamepad1.triangle) {
-                i.clawOpen();
+                Lift.target =Lift.specimen_height;
             }
             if(gamepad1.circle) {
-                i.clawClose();
-                i.pitchUp();
+                l.clawOpen();
+            }
+            if(gamepad1.dpad_down) {
+                Lift.target= Lift.specimen_down;
+            }
+            if(gamepad1.dpad_left) {
+                l.clawClose();
+            }
+            if(gamepad1.dpad_up){
+                l.pitchHome();
             }
 
             if(gamepad1.right_bumper) {
-                Intake.target = 0;
-            }
-
-            if(gamepad1.dpad_up) {
-                l.clawClose();
-            }
-
-            if(gamepad1.dpad_right) {
-                i.clawPartial ();
-            }
-
-            if(gamepad1.dpad_down) {
-                Lift.target = 4000;
-            }
-
-            if(gamepad1.dpad_left) {
-                l.pitchDrop();
+                Lift.target = 0;
             }
 
             if(gamepad1.left_bumper) {
-                l.clawOpen();
+                Lift.target = Lift.sample_height;
             }
+
 
             l.update();
             i.update();
@@ -70,7 +73,7 @@ public class Tuning extends LinearOpMode {
             }
             if(gamepad1.left_stick_button) {
                 l.oM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                l.oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); 
+                l.oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
 
             telemetry.addData("om1 pos", l.oM1.getCurrentPosition());

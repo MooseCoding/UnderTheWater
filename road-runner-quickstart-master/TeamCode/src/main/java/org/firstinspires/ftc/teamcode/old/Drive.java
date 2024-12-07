@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 @Config
+@Disabled
 public class Drive extends OpMode {
     private DcMotorEx fL, bR, bL, fR;
     public static double multi = 1;

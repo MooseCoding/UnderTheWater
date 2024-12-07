@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.old;
 
 import com.outoftheboxrobotics.photoncore.Photon;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,13 +12,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.ArrayList;
 
-import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.robot.vision.Sample;
 import org.opencv.core.Scalar;
 import org.openftc.easyopencv.OpenCvCamera;
 
 
 @Photon
 @TeleOp
+@Disabled
 public class USEME extends LinearOpMode {
     private final Scalar lowerBlue = new Scalar(100, 150, 50);
     private final Scalar upperBlue = new Scalar(130,255,255);

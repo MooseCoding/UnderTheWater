@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.old;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
+@Disabled
 public class NewValues extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
     private DcMotorEx iM, oM1, oM2;

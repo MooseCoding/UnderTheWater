@@ -18,11 +18,18 @@ public class MeepMeepTesting {
                 .setConstraints(50, 50, Math.toRadians(180), Math.toRadians(180), 17)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-12, -61, Math.PI))
+        myBot.runAction(myBot.getDrive().actionBuilder(
+                new Pose2d(-8, -61, Math.PI/2))
                 // Drop off preload
-                    .lineToX(-50)
+                    .lineToY(-36)
                                 .waitSeconds(4)
 
+                .lineToY(-40)
+                .strafeTo(new Vector2d(-35, -40))
+                .strafeTo(new Vector2d(-35, -0))
+                .turn(-Math.PI/2)
+                .lineToX(-24)
+/*
                 // First sample pickup
                     .splineTo(new Vector2d(-48, -37), Math.PI/2)
                 .waitSeconds(1)
@@ -51,8 +58,43 @@ public class MeepMeepTesting {
                         .splineTo(new Vector2d(-24, -12), 0)
                         .turn(-Math.PI/2)
 
-
+*/
                 .build());
+
+                /*
+                new Pose2d(8, 61, -Math.PI/2))
+
+                // Specimen Dropoff
+                                .lineToY(35)
+                                .waitSeconds(4)
+
+
+                // First sample pickup
+                    .strafeTo(new Vector2d(48, 37))
+                    .waitSeconds(1)
+
+
+                /*
+                // Second sample pickup
+                    .strafeTo(new Vector2d(58, 35))
+                    .turn(-Math.PI/2)
+                    .waitSeconds(1)
+                    .strafeTo(new Vector2d(52, 60))
+                    .turn(Math.PI/2)
+                    .waitSeconds(1)
+
+                // Third sample pickup
+                    .strafeTo(new Vector2d(55, 28))
+                    .waitSeconds(1)
+                    .strafeTo(new Vector2d(52, 60))
+                    .waitSeconds(1)
+
+                    .strafeTo(new Vector2d(52, 40))
+
+                    .splineTo(new Vector2d(24, 12), 0)
+                    .turn(Math.PI/2)
+
+                .build());*/
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_JUICE_DARK)
                 .setDarkMode(true)

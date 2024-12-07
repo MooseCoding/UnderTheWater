@@ -1,22 +1,22 @@
 package org.firstinspires.ftc.teamcode.robot; 
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+import static org.firstinspires.ftc.teamcode.robot.Intake.pitchDown;
+import static org.firstinspires.ftc.teamcode.robot.Intake.pitchUp;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
-import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.robot.vision.Sample;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 public class Robot {
@@ -35,6 +35,7 @@ public class Robot {
     // Subsystems
     private Lift l;
     private Intake i;
+    private Hang h;
 
     // Vision detection vars
     private boolean aligned = false; 
@@ -81,6 +82,7 @@ public class Robot {
     public void init(HardwareMap hardwareMap) {
         l = new Lift(hardwareMap);
         i = new Intake(hardwareMap);
+        h = new Hang(hardwareMap);
 
         d = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
@@ -114,6 +116,11 @@ public class Robot {
         for(LynxModule module: hubs) {
             module.clearBulkCache(); 
         }
+
+        // Update our thingys
+        l.update();
+        i.update();
+        h.update();
 
         // Drivetrain Movement Code
         double max;
@@ -149,9 +156,9 @@ public class Robot {
             case INTAKE: {
                 switch(ii) {
                     case OUT: {
-                        i.clawClose();
-
-                        if(g.cross) {
+                        l.clawOpen();
+                        // iC is closed, intake at 0, oC is open and oP is at home
+                        if(g.right_bumper) {
                             i.clawOpen();
                             i.pitchDown();
                             Intake.pidused = false;
@@ -173,7 +180,7 @@ public class Robot {
                     case GRAB: {
                         aligned = alignClaw(samples); 
 
-                        if(aligned && g.right_bumper) {
+                        if(aligned && g.left_bumper) {
                             i.clawClose();
                             t=RUNTIME;
                             ii = INSTATE_INTAKE.MOVEBACK;
@@ -182,17 +189,19 @@ public class Robot {
                         break; 
                     }
                     case MOVEBACK: {
-                        if(t-RUNTIME > 0.3) {
+                        if(t-RUNTIME > 0.3 && Intake.pitchPos == pitchDown) {
                             i.pitchUp();
                             i.cleanYaw();
 
-                            Intake.pidused = true;
-                            Intake.target = 0;
+                            t = RUNTIME;
+                        }
 
+                        if(t-RUNTIME > 0.3 && Intake.pitchPos == pitchUp){
                             t = -1;
                         }
 
                         if(t==-1) {
+                            Intake.target = 0;
                             ii = INSTATE_INTAKE.OUT;
                             current_claw_state = CLAW_STATE.TRANSFER;
                         }
@@ -204,32 +213,24 @@ public class Robot {
             case TRANSFER: {
                 switch(it) {
                     case TRANSFER1: {
-                        Lift.pitchPos = 0.0;
-
-                        if(t==-1) {
-                            t = RUNTIME;
-                        }
-
-                        if(t != -1 && RUNTIME - t > 0.4) {
-                            l.clawClose();
-                            t = -1;
-                            it = INSTATE_TRANSFER.TRANSFER2; 
-                        }
+                        l.clawClose();
+                        t = -1;
+                        it = INSTATE_TRANSFER.TRANSFER2;
 
                         break;
                     }
                     case TRANSFER2: {   
-                        i.clawOpen();
+                        i.clawPartial();
 
                         if (t == -1) {
-                            l.pitchDrop(); // Move the outtake pitch back up to drop it
                             t = RUNTIME;
                         }   
 
-                        if (t != -1 && RUNTIME - t > 0.2 && g.cross) {
+                        if (t != -1 && RUNTIME - t > 0.2 && g.right_bumper) {
                             t = -1;
                             it = INSTATE_TRANSFER.TRANSFER1;
-                            current_claw_state = CLAW_STATE.OUTTAKE; 
+                            current_claw_state = CLAW_STATE.OUTTAKE;
+                            i.clawClose();
                         }
                         break; 
                     }   
@@ -242,14 +243,16 @@ public class Robot {
                     case LIFT: {
                         l.sample();
 
-                        if(l.oM1.getCurrentPosition() >= 2950) {
+                        if(l.oM1.getCurrentPosition() >= 3500) {
                             io = INSTATE_OUTTAKE.TURN;
                         }
 
                         break; 
                     }
                     case TURN: {
-                        if (g.cross) {
+                        l.pitchDrop();
+
+                        if (g.left_bumper) {
                             t = -1;
                             io = INSTATE_OUTTAKE.DROP; 
                         }
@@ -265,19 +268,25 @@ public class Robot {
 
                         if(t != -1 && (RUNTIME - t > 0.3)) {
                             t = -1;
+                            l.clawClose();
                             l.pitchHome();
-                            l.home();
 
-                            io = INSTATE_OUTTAKE.LIFT;
-                            current_claw_state = CLAW_STATE.INTAKE;
+                            if(g.cross) {
+                                l.home();
+                                io = INSTATE_OUTTAKE.LIFT;
+                                current_claw_state = CLAW_STATE.INTAKE;
+                            }
                         }
 
                         break;
                     }
                 }
             }
-            case HANG: {
-                break;
+        }
+
+        if(ENDGAME) {
+            if(g.dpad_left) {
+
             }
         }
 

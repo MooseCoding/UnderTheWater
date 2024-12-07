@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import static org.firstinspires.ftc.teamcode.roadrunner.PoseStorage.currentPose;
 
@@ -18,14 +18,7 @@ import org.firstinspires.ftc.teamcode.robot.Lift;
 
 @Photon
 @Autonomous
-public class EitherOrAuto extends LinearOpMode {
-    private enum AUTO {
-        RED,
-        BLUE,
-    }
-
-    private AUTO color = AUTO.RED;
-
+public class RedAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,7 +30,14 @@ public class EitherOrAuto extends LinearOpMode {
             Intake in = new Intake(hardwareMap);
 
             TrajectoryActionBuilder dropOff = d.actionBuilder(init_pos)
-                    .lineToX(-50);
+                    .lineToY(-36);
+
+            TrajectoryActionBuilder dropOffToAscent = d.actionBuilder(d.pose)
+                    .lineToY(-40)
+                    .strafeTo(new Vector2d(-35, -40))
+                    .strafeTo(new Vector2d(-35, -0))
+                    .turn(-Math.PI/2)
+                    .lineToX(-24);
 
             TrajectoryActionBuilder firstSamplePickUp = d.actionBuilder(d.pose)
                     .splineTo(new Vector2d(-48, -37), Math.PI/2);
@@ -66,26 +66,20 @@ public class EitherOrAuto extends LinearOpMode {
                     .splineTo(new Vector2d(-24, -12), 0)
                     .turn(-Math.PI/2);
 
+            Actions.runBlocking(
+                    Lift.clawGrab()
+            );
 
             waitForStart();
-/*
-            switch (color) {
-                case RED: {
-                    Actions.runBlocking(
-                            new SequentialAction(
-                                    dropOff,
-
-                            )
-                    );
-                }
-                case BLUE: {
-
-                }
-            }*/
 
             Actions.runBlocking(
                     new SequentialAction(
-
+                            new Lift.SpecimenHeight(),
+                            new Lift.PitchUp(),
+                            dropOff.build(),
+                            new Lift.SpecimenDown(),
+                            new Lift.ClawDrop(),
+                            dropOffToAscent.build()
                     )
             );
 

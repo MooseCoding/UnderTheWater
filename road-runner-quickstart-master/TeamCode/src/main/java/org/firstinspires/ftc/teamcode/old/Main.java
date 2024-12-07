@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.old;
 
 import com.outoftheboxrobotics.photoncore.Photon;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Photon
 @TeleOp
+@Disabled
 public class Main extends LinearOpMode {
     private DcMotorEx fL, fR, bL, bR;
     private DcMotorEx liftMotor, armMotor;
