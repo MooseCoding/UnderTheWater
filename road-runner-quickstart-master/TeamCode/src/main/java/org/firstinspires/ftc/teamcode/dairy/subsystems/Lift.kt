@@ -28,6 +28,7 @@ class Lift private constructor() : Subsystem {
         outtake1 = hardwareMap.get(DcMotorEx::class.java, "outtake1")
         outtake2 = hardwareMap.get(DcMotorEx::class.java, "outtake2")
         outtake2?.direction = DcMotorSimple.Direction.REVERSE
+        
         defaultCommand = update()
 
         pid = FullController(
@@ -45,8 +46,6 @@ class Lift private constructor() : Subsystem {
             kA = kA,
             kS = kS
         )
-
-        time = opMode.opMode.runtime
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {

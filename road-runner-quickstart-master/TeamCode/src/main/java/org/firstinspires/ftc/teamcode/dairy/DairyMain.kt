@@ -25,8 +25,8 @@ class DairyMain: OpMode() {
         Mercurial.gamepad1.triangle.onTrue(Sequential(IntakeClaw.INSTANCE.openClaw(), IntakeClaw.INSTANCE.pitchDown()))
         Mercurial.gamepad1.circle.onTrue(Sequential(IntakeClaw.INSTANCE.closeClaw(), IntakeClaw.INSTANCE.pitchUp(), IntakeClaw.INSTANCE.cleanYaw(), Intake.flipPID(), Intake.goTo(0)))
         Mercurial.gamepad1.cross.onTrue(Sequential(OuttakeClaw.INSTANCE.clawClose(), IntakeClaw.INSTANCE.partialClaw()))
-        Mercurial.gamepad1.square.onTrue(Sequential(Parallel(OuttakeClaw.INSTANCE.pitchUp(), Lift.INSTANCE.goTo(4000)), IntakeClaw.INSTANCE.closeClaw(), Intake.flipPID()))
-        Mercurial.gamepad1.leftBumper.onTrue(Sequential(OuttakeClaw.INSTANCE.clawOpen(), OuttakeClaw.INSTANCE.pitchDown(), Lift.INSTANCE.goTo(1000), Lift.INSTANCE.goTo(0)))
+        Mercurial.gamepad1.square.onTrue(Sequential(Parallel(Lift.INSTANCE.goTo(4000), OuttakeClaw.INSTANCE.pitchUp()), Parallel(IntakeClaw.INSTANCE.closeClaw(), Intake.flipPID())))
+        Mercurial.gamepad1.leftBumper.onTrue(Sequential(OuttakeClaw.INSTANCE.clawOpen(), Parallel(OuttakeClaw.INSTANCE.pitchDown(), Lift.INSTANCE.goTo(1000)), Lift.INSTANCE.goTo(0)))
     }
 
     override fun loop() {
