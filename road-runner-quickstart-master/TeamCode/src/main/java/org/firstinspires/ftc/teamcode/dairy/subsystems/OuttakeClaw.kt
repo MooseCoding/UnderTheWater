@@ -8,7 +8,9 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
+import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw.Companion
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
+import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 import java.lang.annotation.Inherited
 
 @Config
@@ -19,6 +21,14 @@ class OuttakeClaw private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
+    private val claw_open: Double = 0.0
+    private val claw_close: Double = 0.0
+    private val pitch_up: Double = 0.0
+    private val pitch_down: Double = 0.0
+    private val yaw_home: Double = 0.0
+    private val claw_partial:Double =0.0
+
+
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
@@ -27,9 +37,10 @@ class OuttakeClaw private constructor() : Subsystem {
         claw = hardwareMap.servo["outtakeClaw"]
         pitch = hardwareMap.servo["outtakePitch"]
 
-        defaultCommand = update()
 
         time = opMode.opMode.runtime
+
+        defaultCommand = update()
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -37,60 +48,78 @@ class OuttakeClaw private constructor() : Subsystem {
     }
 
     companion object {
+        private lateinit var waiter: Waiter
+
         val INSTANCE: OuttakeClaw = OuttakeClaw()
 
         private var claw: Servo? = null
         private var pitch: Servo? = null
 
-        private var clawTarget = 0.0
-        private var pitchTarget = 0.0
-
         private var time = 0.0
+
+        @JvmField var claw_pos: Double = 0.0
+        @JvmField var pitch_pos: Double = 0.0
     }
 
     fun update(): Lambda {
-        return Lambda("update the pid")
-            .addRequirements(Lift.INSTANCE)
-            .setExecute { goTo() }
-            .setFinish { false }
+        return Lambda("update outtake claw")
+            .setRequirements(INSTANCE)
+            .setExecute{
+                pitch!!.position = pitch_pos
+                claw!!.position = claw_pos
+            }
+            .setFinish{false}
     }
 
-    fun goTo(): Lambda {
-        return Lambda("set pid target")
-            .setExecute {
-               claw!!.position = clawTarget
-               pitch!!.position = pitchTarget
+    fun pitchUp(): Lambda {
+        return Lambda("pitch up")
+            .setRequirements(INSTANCE)
+            .setInit({
+                pitch_pos = pitch_up
+                update()
+                waiter.start(200)
+            })
+            .setFinish({
+                waiter.isDone
+            })
+    }
+
+    fun pitchDown(): Lambda {
+        return Lambda("pitch down")
+            .setRequirements(INSTANCE)
+            .setInit({
+                pitch_pos = pitch_down
+                update()
+                waiter.start(200)
+            })
+            .setFinish({
+                waiter.isDone
+            })
+    }
+
+    fun clawClose(): Lambda {
+        return Lambda("claw close")
+            .setRequirements(INSTANCE)
+            .setInit {
+                claw_pos = claw_close
+                update()
+                waiter.start(200)
+            }
+            .setFinish {
+                waiter.isDone
             }
     }
 
-    fun dropSample(): Lambda {
-        return Lambda("drop sample")
+    fun clawOpen(): Lambda {
+        return Lambda("claw open")
             .setRequirements(INSTANCE)
-            .setExecute {
-                if (gamepad1.rightTrigger.state >= .1) {
-                    clawTarget = 0.0
-                    pitchTarget = 0.0
-                }
+            .setInit {
+                claw_pos = claw_open
+                update()
+                waiter.start(200)
             }
-    }
-
-    fun returnHome(): Lambda {
-        return Lambda("lift down")
-            .setRequirements(INSTANCE)
-            .setExecute {
-                if(gamepad1.leftTrigger.state >= .1) {
-                    clawTarget = 0.0
-                    pitchTarget = 0.0
-                }
-            }
-    }
-
-    fun transfer(): Lambda {
-        return Lambda("outtake claw transfer")
-            .setRequirements(INSTANCE)
-            .setExecute {
-                clawTarget = 0.0
-                pitchTarget = 0.0
+            .setFinish {
+                waiter.isDone
             }
     }
 }

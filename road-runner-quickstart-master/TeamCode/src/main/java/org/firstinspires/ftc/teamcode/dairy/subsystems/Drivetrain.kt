@@ -6,10 +6,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.commands.Lambda
+import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
 import java.lang.annotation.Inherited
+import kotlin.math.abs
+import kotlin.math.max
+
 
 @Config
 class Drivetrain private constructor() : Subsystem {
@@ -29,8 +31,9 @@ class Drivetrain private constructor() : Subsystem {
         fR = hardwareMap.dcMotor["frontRight"] as DcMotorEx
         bR = hardwareMap.dcMotor["backRight"] as DcMotorEx
 
-        bR!!.setDirection(DcMotorSimple.Direction.REVERSE)
-        fR!!.setDirection(DcMotorSimple.Direction.REVERSE)
+        fL!!.direction = DcMotorSimple.Direction.REVERSE
+        bL!!.direction = DcMotorSimple.Direction.REVERSE
+        bR!!.direction = DcMotorSimple.Direction.REVERSE
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -47,13 +50,34 @@ class Drivetrain private constructor() : Subsystem {
     }
 
 
-    fun run(fLP: Double, fRP: Double, bLP: Double, bRP: Double): Lambda {
-        return Lambda("set pid target")
-            .setExecute {
-                fL!!.power = fLP
-                fR!!.power = fRP
-                bL!!.power = bLP
-                bR!!.power = bRP
-            }
+    fun driveUpdate() {
+        var max: Double
+
+        // read the gamepads
+        val axial: Double = gamepad1.leftStickX.state
+        val lateral: Double = gamepad1.leftStickY.state
+        val yaw: Double = gamepad1.rightStickX.state
+
+        var leftFrontPower: Double = (axial + lateral) + yaw
+        var rightFrontPower: Double = (axial - lateral) - yaw
+        var leftBackPower: Double = (axial - lateral) + yaw
+        var rightBackPower: Double = (axial + lateral) - yaw
+
+
+        max = max(abs(leftFrontPower), abs(rightFrontPower))
+        max = max(max, abs(leftBackPower))
+        max = max(max, abs(rightBackPower))
+
+        if (max > 1.0) {
+            leftFrontPower /= max
+            rightFrontPower /= max
+            leftBackPower /= max
+            rightBackPower /= max
+        }
+
+        fL!!.power = leftFrontPower
+        bL!!.power = leftBackPower
+        bR!!.power = rightBackPower
+        fR!!.power = rightFrontPower
     }
 }

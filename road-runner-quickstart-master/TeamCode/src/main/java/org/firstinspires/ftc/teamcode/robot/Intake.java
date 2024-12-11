@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,6 +15,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
+@Disabled
 public class Intake {
     public DcMotorEx iM;
     private PIDController controller;
@@ -23,8 +25,8 @@ public class Intake {
 
     public static boolean pidused = true;
 
-    public static double pitchDown = 1; // Done
-    public static double pitchUp = 0.25; // Done
+    public static double pitchDown = 0.22; // Done
+    public static double pitchUp = 0.117; // Done
 
     public static double clawClose = 0.3; // Done
     public static double clawOpen = 0.7; // Done
@@ -37,7 +39,7 @@ public class Intake {
 
     public Intake(HardwareMap hardwareMap) {
         iM = (DcMotorEx) hardwareMap.dcMotor.get("intake");
-        iM.setDirection(DcMotorSimple.Direction.REVERSE);
+        iM.setDirection(DcMotorSimple.Direction.FORWARD);
         double p = 0.02;
         double i = 0.000001;
         double d = 0.0003;
@@ -45,6 +47,7 @@ public class Intake {
         intakeClaw = hardwareMap.servo.get("intakeClaw");
         intakeYaw = hardwareMap.servo.get("intakeYaw");
         intakePitch = hardwareMap.servo.get("intakePitch");
+        clawPos = clawClose;
     }
 
     public void update() {
@@ -105,7 +108,7 @@ public class Intake {
             i = li;
         }
 
-        public Action intakeClawClose(Intake li) {
+        public Action intakeClawClose(Intake li)  {
             return new IntakeClawClose(li);
         }
     }

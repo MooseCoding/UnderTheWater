@@ -6,46 +6,30 @@ import dev.frozenmilk.dairy.pasteurized.SDKGamepad
 import dev.frozenmilk.dairy.pasteurized.layering.LayeredGamepad
 import dev.frozenmilk.dairy.pasteurized.layering.MapLayeringSystem
 import dev.frozenmilk.mercurial.Mercurial
-
-enum class GamepadLayers {
-    TELEOP,
-    ENDGAME,
-}
+import dev.frozenmilk.mercurial.commands.groups.Parallel
+import dev.frozenmilk.mercurial.commands.groups.Sequential
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Drivetrain
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
+import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
+import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
 
 @Mercurial.Attach
+@Drivetrain.Attach
+@Lift.Attach
+@OuttakeClaw.Attach
+@IntakeClaw.Attach
+@Intake.Attach
 class DairyMain: OpMode() {
-    /*
-    val teleOpGamepad1 = SDKGamepad(gamepad1)
-    val endgameGamepad1 = SDKGamepad(gamepad1)
-
-    val teleOpGamepad2 = SDKGamepad(gamepad1)
-    val endgameGamepad2 = SDKGamepad(gamepad1)
-
-    val pasteurizedGamepad1 = mapOf(
-        GamepadLayers.TELEOP to teleOpGamepad1,
-        GamepadLayers.ENDGAME to endgameGamepad1
-    )
-
-    val pasteurizedGamepad2 = mapOf(
-        GamepadLayers.TELEOP to teleOpGamepad2,
-        GamepadLayers.ENDGAME to endgameGamepad2
-    )
-
-    val enumLayeringSystem1 = MapLayeringSystem(GamepadLayers.TELEOP, pasteurizedGamepad1)
-    val enumLayeringSystem2 = MapLayeringSystem(GamepadLayers.TELEOP, pasteurizedGamepad1)
-    val layeredGamepad1 = LayeredGamepad(enumLayeringSystem1)
-    val layeredGamepad2 = LayeredGamepad(enumLayeringSystem2)
-    */
-
-
-
     override fun init() {
-
+        Mercurial.gamepad1.triangle.onTrue(Sequential(IntakeClaw.INSTANCE.openClaw(), IntakeClaw.INSTANCE.pitchDown()))
+        Mercurial.gamepad1.circle.onTrue(Sequential(IntakeClaw.INSTANCE.closeClaw(), IntakeClaw.INSTANCE.pitchUp(), IntakeClaw.INSTANCE.cleanYaw(), Intake.flipPID(), Intake.goTo(0)))
+        Mercurial.gamepad1.cross.onTrue(Sequential(OuttakeClaw.INSTANCE.clawClose(), IntakeClaw.INSTANCE.partialClaw()))
+        Mercurial.gamepad1.square.onTrue(Sequential(Parallel(OuttakeClaw.INSTANCE.pitchUp(), Lift.INSTANCE.goTo(4000)), IntakeClaw.INSTANCE.closeClaw(), Intake.flipPID()))
+        Mercurial.gamepad1.leftBumper.onTrue(Sequential(OuttakeClaw.INSTANCE.clawOpen(), OuttakeClaw.INSTANCE.pitchDown(), Lift.INSTANCE.goTo(1000), Lift.INSTANCE.goTo(0)))
     }
 
     override fun loop() {
-        var a = Pasteurized.gamepad1.a;
-
 
     }
 

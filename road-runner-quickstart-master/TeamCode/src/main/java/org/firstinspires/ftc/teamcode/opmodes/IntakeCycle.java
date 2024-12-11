@@ -18,18 +18,19 @@ import java.util.ArrayList;
 
 @Photon
 @TeleOp
-public class NewTeleOP extends OpMode {
+public class IntakeCycle extends OpMode {
     private Telemetry tel;
 
     // Robot motors & servos
     private DcMotorEx fL, fR, bL, bR;
 
     // Subsystems
-    private Lift l; // 
+    private Lift l;
     private Intake i;
     private final Robot robot = new Robot();
     @Override
     public void init() {
+        tel = new MultipleTelemetry(FtcDashboard.getInstance().getTelemetry(), telemetry);
         fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
         bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
         fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
@@ -43,6 +44,7 @@ public class NewTeleOP extends OpMode {
         i = new Intake(hardwareMap);
 
         Intake.pidused = false;
+        //robot.init(hardwareMap);
     }
 
     private ArrayList<Sample> samples = new ArrayList<>();
@@ -87,72 +89,30 @@ public class NewTeleOP extends OpMode {
         }
         else if(!Intake.pidused){i.iM.setPower(0);}
 
-        if(gamepad1.triangle && !Intake.pidused) {
+        if(gamepad1.triangle) {
             i.clawOpen();
             i.pitchDown();
         }
 
-        if(gamepad1.circle && !Intake.pidused) {
+        if(gamepad1.circle) {
             i.clawClose();
         }
 
-        if(gamepad1.cross && !Intake.pidused) {
+        if(gamepad1.cross) {
             i.pitchUp();
         }
 
-        if(gamepad1.left_stick_button && !Intake.pidused) {
-            Intake.pidused = true;
-            Intake.target = 100;
-        }
-
-        if(gamepad1.dpad_up) {
-            l.clawClose();
-        }
-
-        if(gamepad1.dpad_right) {
-            i.clawPartial();
-        }
-
-        if(gamepad1.dpad_down) {
-            Lift.pidfused = true;
-            Lift.target = 3800;
-        }
-
-        if(gamepad1.dpad_left) {
-            l.pitchDrop();
-        }
-
         if(gamepad1.left_bumper) {
-            l.clawOpen();
+            i.clawOpen();
         }
-
         if(gamepad1.right_bumper) {
-            l.clawClose();
-        }
-
-        if(gamepad1.triangle && Intake.pidused) {
-            l.pitchHome();
-        }
-
-        if(gamepad1.circle && Intake.pidused) {
-            Lift.target = 1000;
-        }
-
-        if(gamepad1.cross && Intake.pidused) {
-            Lift.target = 0;
-        }
-
-        if(gamepad1.square && Intake.pidused) {
-            Lift.pidfused = false;
-            Intake.pidused = false;
-            l.clawOpen();
-            i.clawClose();
+            i.pitchDown();
         }
 
         l.update();
         i.update();
 
-        telemetry.addData("intake pid", Intake.pidused);
-        telemetry.update();
+        tel.addData("intake pid", Intake.pidused);
+        tel.update();
     }
 }

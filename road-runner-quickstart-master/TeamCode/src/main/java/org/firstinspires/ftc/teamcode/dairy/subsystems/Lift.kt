@@ -58,70 +58,66 @@ class Lift private constructor() : Subsystem {
         private var outtake1: DcMotorEx? = null
         private var outtake2: DcMotorEx? = null
         private var pid: FullController? = null
-        private const val k = 0.0
-        private const val r = 0.0
-        private const val n = 0.0
 
-        private const val pkP = .004
-        private const val pkD = .0004
-        private const val pkI = 0.0
+        @JvmField var target:Double = 0.0
 
-        private const val vkP = 0.0
-        private const val vkD = 0.0
-        private const val vkI = 0.0
+        var time = 0.0
 
-        private const val kV = 0.0
-        private const val kA = 0.0
-        private const val kS = 0.0
+        @JvmField var k = 0.0
+        @JvmField var r = 0.0
+        @JvmField var n = 0.0
 
-        private var target = 0.0
+        @JvmField var pkP = .004
+        @JvmField var pkD = .0004
+        @JvmField var pkI = 0.0
 
-        private var time = 0.0
+        @JvmField var vkP = 0.0
+        @JvmField var vkD = 0.0
+        @JvmField var vkI = 0.0
+
+        @JvmField  var kV = 0.0
+        @JvmField  var kA = 0.0
+        @JvmField var kS = 0.0
+
+        @JvmField var tolerance = 20
+
+        @JvmField var pidfused:Boolean = false
     }
 
-        fun pidUpdate() {
-            pid!!.target = target // Set the target for FullController
 
-            // Check for null values before using them
-            outtake1?.let { motor ->
-                val power: Double = pid?.update(time) ?: 0.0
-                outtake1?.power = power
-                outtake2?.power = power
+
+    fun pidUpdate() {
+        pid!!.target = target.toDouble() // Set the target for FullController
+
+        outtake1!!.let {
+            val power: Double = pid!!.update() ?: 0.0
+            outtake1!!.power = power
+            outtake2!!.power = power
+        }
+    }
+
+    fun update(): Lambda {
+        return Lambda("update the pid")
+            .addRequirements(Intake.INSTANCE)
+            .setExecute {
+                if(pidfused)
+                {pidUpdate()}
             }
-        }
+            .setFinish { false }
+    }
 
-        fun update(): Lambda {
-            return Lambda("update the pid")
-                .addRequirements(INSTANCE)
-                .setExecute { pidUpdate() }
-                .setFinish { false }
-        }
+    fun goTo(to: Int): Lambda {
+        return Lambda("set pid target")
+            .setInit {
+                target = to.toDouble()
+            }
+            .setExecute{
+                update()
+            }
+            .setFinish({ atTarget()})
+    }
 
-        fun goTo(to: Int): Lambda {
-            return Lambda("set pid target")
-                .setExecute {
-                    target = to.toDouble()
-                    pid!!.target = target    // Update target in controller
-                }
-        }
-
-        fun dropSample(): Lambda {
-            return Lambda("drop sample")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if (gamepad1.rightTrigger.state >= .1) {
-                        goTo(3000)
-                    }
-                }
-        }
-
-        fun returnHome(): Lambda {
-            return Lambda("lift down")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if(gamepad1.leftTrigger.state >= .1) {
-                        goTo(0)
-                    }
-                }
-        }
+    fun atTarget(): Boolean {
+        return (outtake1!!.currentPosition >= (target - tolerance) || outtake1!!.currentPosition <= (target + tolerance))
+    }
 }

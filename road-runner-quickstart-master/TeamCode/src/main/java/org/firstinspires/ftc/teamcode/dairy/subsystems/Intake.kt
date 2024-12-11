@@ -2,13 +2,12 @@ package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
 import org.firstinspires.ftc.teamcode.dairy.control.FullController
 import java.lang.annotation.Inherited
 
@@ -22,28 +21,28 @@ class Intake private constructor() : Subsystem {
 
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
+
     override fun postUserInitHook(opMode: Wrapper) {
         val hardwareMap = opMode.opMode.hardwareMap
         intake = hardwareMap.get(DcMotorEx::class.java, "intake")
+        intake!!.direction = DcMotorSimple.Direction.REVERSE
         defaultCommand = update()
 
         pid = FullController(
             motor = intake!!,
-            q = k,
-            r = r,
+            q = q,
+           r = r,
             n = n.toInt(),
-            posKP = pkP,
+          posKP = pkP,
             posKI = pkI,
             posKD = pkD,
             velKP = vkP,
-            velKI = vkI,
-            velKD = vkD,
+           velKI = vkI,
+           velKD = vkD,
             kV = kV,
             kA = kA,
             kS = kS
         )
-
-        time = opMode.opMode.runtime
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -53,32 +52,37 @@ class Intake private constructor() : Subsystem {
         val INSTANCE: Intake = Intake()
         var intake: DcMotorEx? = null
 
-        private var pid: FullController? = null
-        const val k = 0.0
-        const val r = 0.0
-        const val n = 0.0
+        @JvmField var pidused: Boolean = true
 
-        const val pkP = .004
-        const val pkD = .0004
-        const val pkI = 0.0
+        @JvmField var q: Double = 0.0
+        @JvmField var r: Double = 0.0
+        @JvmField var n: Double = 0.0
 
-        const val vkP = 0.0
-        const val vkD = 0.0
-        const val vkI = 0.0
+       @JvmField var pkP: Double = 0.0
+        @JvmField var pkD: Double = 0.0
+         @JvmField var pkI: Double = 0.0
 
-        const val kV = 0.0
-        const val kA = 0.0
-        const val kS = 0.0
+        @JvmField var vkP: Double = 0.0
+        @JvmField var vkD: Double = 0.0
+        @JvmField var vkI: Double = 0.0
 
-        var target = 0.0
+        @JvmField  var kV : Double= 0.0
+        @JvmField  var kA : Double= 0.0
+        @JvmField var kS : Double= 0.0
 
-        var time = 0.0
+        @JvmField var tolerance : Int= 20
+
+        var target: Double = 0.0
+
+        var time: Double = 0.0
+
+        var pid: FullController? = null
 
         fun pidUpdate() {
             pid!!.target = target.toDouble() // Set the target for FullController
 
             intake?.let { motor ->
-                val power: Double = pid?.update(time) ?: 0.0
+                val power: Double = pid!!.update() ?: 0.0
                 intake?.power = power
             }
         }
@@ -86,7 +90,10 @@ class Intake private constructor() : Subsystem {
         fun update(): Lambda {
             return Lambda("update the pid")
                 .addRequirements(INSTANCE)
-                .setExecute { pidUpdate() }
+                .setExecute {
+                    if(pidused)
+                    {pidUpdate() }
+                }
                 .setFinish { false }
         }
 
@@ -96,26 +103,22 @@ class Intake private constructor() : Subsystem {
                     target = to.toDouble()
                     pid!!.target = target.toDouble() // Update target in controller
                 }
+                .setFinish({ atTarget()})
         }
 
-        fun extendOut(): Lambda {
-            return Lambda("extend out")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if (gamepad1.rightTrigger.state >= .1) {
-                        goTo(intake!!.currentPosition + 20)
-                    }
-                }
+        fun atTarget(): Boolean {
+            return (intake!!.currentPosition >= (target - tolerance) || intake!!.currentPosition <= (target + tolerance))
         }
 
-        fun returnHome(): Lambda {
-            return Lambda("go home")
-                .setRequirements(INSTANCE)
+        fun flipPID(): Lambda {
+            return Lambda("flip PID value")
                 .setExecute {
-                    if (gamepad1.leftTrigger.state >= .1) {
-                        goTo(intake!!.currentPosition - 20)
-                    }
+                    pidused = !pidused
                 }
+                .setFinish{true}
         }
+
     }
+
+
 }

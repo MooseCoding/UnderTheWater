@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 @Config
-@Disabled
 public class Drive extends OpMode {
     private DcMotorEx fL, bR, bL, fR;
     public static double multi = 1;
