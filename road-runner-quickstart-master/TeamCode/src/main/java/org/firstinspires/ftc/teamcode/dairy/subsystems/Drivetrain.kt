@@ -7,10 +7,12 @@ import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial.gamepad1
+import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
 import kotlin.math.abs
 import kotlin.math.max
+import dev.frozenmilk.mercurial.Mercurial.gamepad2
 
 
 @Config
@@ -34,6 +36,8 @@ class Drivetrain private constructor() : Subsystem {
         fL!!.direction = DcMotorSimple.Direction.REVERSE
         bL!!.direction = DcMotorSimple.Direction.REVERSE
         bR!!.direction = DcMotorSimple.Direction.REVERSE
+
+        defaultCommand = driveUpdate()
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -47,37 +51,49 @@ class Drivetrain private constructor() : Subsystem {
         private var fR: DcMotorEx? = null
         private var bR: DcMotorEx? = null
         private var bL: DcMotorEx? = null
-    }
+
+        @JvmField var driver1: Boolean = true
 
 
-    fun driveUpdate() {
-        var max: Double
+        fun driveUpdate(): Lambda = Lambda("Drive")
+            .setExecute {
+            var max: Double
 
-        // read the gamepads
-        val axial: Double = gamepad1.leftStickX.state
-        val lateral: Double = gamepad1.leftStickY.state
-        val yaw: Double = gamepad1.rightStickX.state
+            // read the gamepads
+            var axial: Double = gamepad1.leftStickX.state
+            var lateral: Double = gamepad1.leftStickY.state
+            var yaw: Double = gamepad1.rightStickX.state
 
-        var leftFrontPower: Double = (axial + lateral) + yaw
-        var rightFrontPower: Double = (axial - lateral) - yaw
-        var leftBackPower: Double = (axial - lateral) + yaw
-        var rightBackPower: Double = (axial + lateral) - yaw
+            if(!driver1) {
+                axial = gamepad2.leftStickX.state
+                lateral = gamepad2.leftStickY.state
+                yaw = gamepad2.rightStickX.state
+            }
+
+            var leftFrontPower: Double = (axial + lateral) + yaw
+            var rightFrontPower: Double = (axial - lateral) - yaw
+            var leftBackPower: Double = (axial - lateral) + yaw
+            var rightBackPower: Double = (axial + lateral) - yaw
 
 
-        max = max(abs(leftFrontPower), abs(rightFrontPower))
-        max = max(max, abs(leftBackPower))
-        max = max(max, abs(rightBackPower))
+            max = max(abs(leftFrontPower), abs(rightFrontPower))
+            max = max(max, abs(leftBackPower))
+            max = max(max, abs(rightBackPower))
 
-        if (max > 1.0) {
-            leftFrontPower /= max
-            rightFrontPower /= max
-            leftBackPower /= max
-            rightBackPower /= max
-        }
+            if (max > 1.0) {
+                leftFrontPower /= max
+                rightFrontPower /= max
+                leftBackPower /= max
+                rightBackPower /= max
+            }
 
-        fL!!.power = leftFrontPower
-        bL!!.power = leftBackPower
-        bR!!.power = rightBackPower
-        fR!!.power = rightFrontPower
+            fL!!.power = leftFrontPower
+            bL!!.power = leftBackPower
+            bR!!.power = rightBackPower
+            fR!!.power = rightFrontPower
+            }
+            .setFinish {
+                false
+            }
     }
 }

@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial.gamepad1
+import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import java.lang.annotation.Inherited
 import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 
@@ -20,136 +21,143 @@ class IntakeClaw private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
+    var claw: Servo? = null // Claw init
+    var pitch: Servo? = null // Pitch init
+    var yaw: Servo? = null // Yaw init
+
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
-        val hardwareMap = opMode.opMode.hardwareMap
+        val hardwareMap = opMode.opMode.hardwareMap // Get the HW map from the current opmode
 
-        claw = hardwareMap.servo["intakeClaw"]
-        pitch = hardwareMap.servo["intakePitch"]
-        yaw = hardwareMap.servo["intakeYaw"]
+        telemetry = opMode.opMode.telemetry
 
-        defaultCommand = update()
+        claw = hardwareMap.servo["intakeClaw"] // setup the claw
+        pitch = hardwareMap.servo["intakePitch"] // setup the pitch
+        yaw = hardwareMap.servo["intakeYaw"] // setup the yaw
 
-        time = opMode.opMode.runtime
+        defaultCommand = update() // set the default command to update the servos pos
+
+        waiter = Waiter()
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
         // Additional loop logic can go here
     }
 
-    companion object {
-        private val claw_open: Double = 0.65
-        private val claw_close: Double = 0.3
-        private val pitch_up: Double = 0.118
-        private val pitch_down: Double = 0.22
-        private val yaw_home: Double = 0.39
-        private val claw_partial:Double =0.4
-
-        val INSTANCE: IntakeClaw = IntakeClaw()
-
-        private var claw: Servo? = null
-        private var pitch: Servo? = null
-        private var yaw: Servo? = null
-
-         @JvmField var claw_pos: Double = claw_close
-         @JvmField var pitch_pos: Double = pitch_up
-         @JvmField var yaw_pos:Double = yaw_home
-
-        private var time = 0.0
-        private lateinit var waiter: Waiter;
-
-
-    }
-
     fun openClaw(): Lambda {
         return Lambda("open claw")
-            .setRequirements(INSTANCE)
-            .setInit({
-                claw_pos = claw_open
-                update()
+            .setRequirements()
+            .setInit {
+                claw_pos = claw_open // Open the claw pos
+                update() // Force an update
                 waiter.start(200)
-            })
-            .setFinish({
-                waiter.isDone
-            })
-    }
-
-    fun update(): Lambda {
-        return Lambda("update the claw")
-            .setRequirements(INSTANCE)
-            .setExecute{
-                claw!!.position = claw_pos
-                yaw!!.position = yaw_pos
-                pitch!!.position = pitch_pos
             }
             .setFinish{
-                false
+                waiter.isDone
+
             }
     }
 
     fun closeClaw(): Lambda {
         return Lambda("close claw")
-            .setRequirements(INSTANCE)
-            .setInit({
-                claw_pos = claw_close
-                update()
+            .setRequirements()
+            .setInit {
+                claw_pos = claw_close // set the claw pos to close
+                update() // Force update
                 waiter.start(200)
-            })
-            .setFinish({
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun partialClaw(): Lambda {
         return Lambda("close claw")
-            .setRequirements(INSTANCE)
-            .setInit({
-                claw_pos = claw_partial
-                update()
+            .setRequirements()
+            .setInit {
+                claw_pos = claw_partial // Partially open the claw
+                update() // force update
                 waiter.start(200)
-            })
-            .setFinish({
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun pitchUp(): Lambda {
         return Lambda("pitch up")
-            .setRequirements(INSTANCE)
-            .setInit({
-                pitch_pos = pitch_up
+            .setRequirements()
+            .setInit {
+                pitch_pos = pitch_up // set the pitch up, at home
                 update()
-                waiter.start(200)
-            })
-            .setFinish({
+                waiter.start(800)
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun pitchDown(): Lambda {
         return Lambda("pitch down")
-            .setRequirements(INSTANCE)
-            .setInit({
-                pitch_pos = pitch_down
+            .setRequirements()
+            .setInit {
+                pitch_pos = pitch_down // set the pitch pos to go down
                 update()
                 waiter.start(200)
-            })
-            .setFinish({
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun cleanYaw(): Lambda {
         return Lambda("reset yaw")
-            .setRequirements(INSTANCE)
-            .setInit({
-                yaw_pos = yaw_home
+            .setRequirements()
+            .setInit{
+                yaw_pos = yaw_home // reset the yaw
                 update()
                 waiter.start(200)
-            })
-            .setFinish({
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
+    }
+
+    companion object {
+        private val claw_open: Double = 0.9 // TUNED - Dec 12
+        private val claw_close: Double = 0.6 // TUNED - Dec 12
+        private val pitch_up: Double = 0.118 // TUNED - Dec 12
+        private val pitch_down: Double = 0.22 // TUNED - Dec 12
+        private val yaw_home: Double = 0.39 // TUNED - Dec 12
+        private val claw_partial: Double = 0.74 // TUNED - Dec 12
+
+        var telemetry:Telemetry? = null
+
+        val INSTANCE: IntakeClaw = IntakeClaw() // Static instiantion
+
+        @JvmField
+        var claw_pos: Double = claw_close // Claw pos starts closed
+
+        @JvmField
+        var pitch_pos: Double = pitch_up // Pitch pos starts up, which is at home
+
+        @JvmField
+        var yaw_pos: Double = yaw_home // Yaw pos stays neutral
+
+        private lateinit var waiter: Waiter
+
+        fun update(): Lambda {
+            return Lambda("update the claw")
+                .setRequirements(INSTANCE)
+                .setExecute {
+                    INSTANCE.claw!!.position = claw_pos // Update the claw position
+                    INSTANCE.yaw!!.position = yaw_pos // Update the yaw position
+                    INSTANCE.pitch!!.position = pitch_pos // Update the pitch position
+                }
+                .setFinish {
+                    false // never really finish
+                }
+        }
     }
 }

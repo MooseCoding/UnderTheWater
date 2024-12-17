@@ -21,26 +21,20 @@ class OuttakeClaw private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
-    private val claw_open: Double = 0.0
-    private val claw_close: Double = 0.0
-    private val pitch_up: Double = 0.0
-    private val pitch_down: Double = 0.0
-    private val yaw_home: Double = 0.0
-    private val claw_partial:Double =0.0
-
-
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
         val hardwareMap = opMode.opMode.hardwareMap
 
         claw = hardwareMap.servo["outtakeClaw"]
-        pitch = hardwareMap.servo["outtakePitch"]
+        pitch = hardwareMap.servo["t"]
 
 
         time = opMode.opMode.runtime
 
         defaultCommand = update()
+
+        waiter = Waiter()
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -48,6 +42,11 @@ class OuttakeClaw private constructor() : Subsystem {
     }
 
     companion object {
+        private val claw_open: Double = 0.9
+        private val claw_close: Double = 0.53
+        private val pitch_up: Double = 0.04
+        private val pitch_down: Double = 0.35
+
         private lateinit var waiter: Waiter
 
         val INSTANCE: OuttakeClaw = OuttakeClaw()
@@ -57,13 +56,13 @@ class OuttakeClaw private constructor() : Subsystem {
 
         private var time = 0.0
 
-        @JvmField var claw_pos: Double = 0.0
-        @JvmField var pitch_pos: Double = 0.0
+        @JvmField var claw_pos: Double = claw_open
+        @JvmField var pitch_pos: Double = pitch_down
     }
 
     fun update(): Lambda {
         return Lambda("update outtake claw")
-            .setRequirements(INSTANCE)
+            .setRequirements()
             .setExecute{
                 pitch!!.position = pitch_pos
                 claw!!.position = claw_pos
@@ -73,33 +72,33 @@ class OuttakeClaw private constructor() : Subsystem {
 
     fun pitchUp(): Lambda {
         return Lambda("pitch up")
-            .setRequirements(INSTANCE)
-            .setInit({
+            .setRequirements()
+            .setInit {
                 pitch_pos = pitch_up
                 update()
                 waiter.start(200)
-            })
-            .setFinish({
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun pitchDown(): Lambda {
         return Lambda("pitch down")
-            .setRequirements(INSTANCE)
-            .setInit({
+            .setRequirements()
+            .setInit {
                 pitch_pos = pitch_down
                 update()
-                waiter.start(200)
-            })
-            .setFinish({
+                waiter.start(300)
+            }
+            .setFinish {
                 waiter.isDone
-            })
+            }
     }
 
     fun clawClose(): Lambda {
         return Lambda("claw close")
-            .setRequirements(INSTANCE)
+            .setRequirements()
             .setInit {
                 claw_pos = claw_close
                 update()
@@ -112,7 +111,7 @@ class OuttakeClaw private constructor() : Subsystem {
 
     fun clawOpen(): Lambda {
         return Lambda("claw open")
-            .setRequirements(INSTANCE)
+            .setRequirements()
             .setInit {
                 claw_pos = claw_open
                 update()

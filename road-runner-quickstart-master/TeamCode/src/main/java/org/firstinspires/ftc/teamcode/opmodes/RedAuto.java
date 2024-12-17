@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.robot.Lift;
 
 @Photon
 @Autonomous
+@Disabled
 public class RedAuto extends LinearOpMode {
 
     @Override

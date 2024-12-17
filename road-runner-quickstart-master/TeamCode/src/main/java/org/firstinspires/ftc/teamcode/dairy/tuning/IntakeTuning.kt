@@ -8,21 +8,19 @@ import com.qualcomm.robotcore.hardware.DcMotor.RunMode
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
+import dev.frozenmilk.mercurial.commands.groups.Sequential
 import org.firstinspires.ftc.teamcode.dairy.control.FullController
+import org.firstinspires.ftc.teamcode.dairy.control.PID
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.d
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.i
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.intake
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.q
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.kA
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.kS
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.kV
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.n
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pkD
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pkI
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pkP
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.r
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.vkD
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.vkI
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.vkP
+
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.p
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pid
+
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.target
+
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 
 @Mercurial.Attach
@@ -32,32 +30,31 @@ import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 class IntakeTuning: OpMode() {
     override fun init() {
         telemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
-        Mercurial.gamepad1.leftBumper.onTrue(Lambda("false pid").setExecute{Intake.pidused=false})
-        Mercurial.gamepad1.rightBumper.onTrue(Lambda("true pid").setExecute{Intake.pidused=true})
-        Mercurial.gamepad1.triangle.onTrue(Lambda("reset motor").setExecute{ intake!!.mode = RunMode.STOP_AND_RESET_ENCODER})
     }
 
     override fun loop() {
-        Intake.pid = FullController(
-            motor = intake!!,
-            q = q,
-            r = r,
-            n = n.toInt(),
-            posKP = pkP,
-            posKI = pkI,
-            posKD = pkD,
-            velKP = vkP,
-            velKI = vkI,
-            velKD = vkD,
-            kV = kV,
-            kA = kA,
-            kS = kS
+        Mercurial.gamepad1.triangle.onTrue(
+            Intake.goTo(0)
+        )
+
+        Mercurial.gamepad1.cross.onTrue(
+            Sequential(
+            Intake.goTo(1000),
+            Intake.flipPID())
+        )
+
+        Mercurial.gamepad1.leftStickButton.onTrue(
+            Lambda("reset encoder")
+                .setInit{Intake.intake!!.mode=RunMode.STOP_AND_RESET_ENCODER}
+                .setFinish{true}
         )
 
         telemetry.addData("pos", intake!!.currentPosition)
-        telemetry.addData("kalman pos", Intake.pid!!.positionFilter.measurement)
         telemetry.addData("vel", intake!!.velocity)
-        telemetry.addData("kalman pos", Intake.pid!!.velocityFilter.measurement)
+        telemetry.addData("power", intake!!.power)
+        telemetry.addData("pid", pid!!.update())
+        telemetry.addData("target", Intake.target)
+        telemetry.addData("pidused", Intake.pidused)
 
         telemetry.update()
     }

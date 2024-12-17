@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.dairy.control
 
 import com.ThermalEquilibrium.homeostasis.Controllers.Feedback.BasicPID
+import com.ThermalEquilibrium.homeostasis.Controllers.Feedback.NoFeedback
 import com.ThermalEquilibrium.homeostasis.Controllers.Feedforward.BasicFeedforward
 import com.ThermalEquilibrium.homeostasis.Filters.Estimators.KalmanEstimator
 import com.ThermalEquilibrium.homeostasis.Parameters.FeedforwardCoefficients
@@ -12,7 +13,7 @@ import com.acmerobotics.dashboard.config.Config
 
 @Config
 class FullController(
-    var motor: DcMotorEx,
+    var motor:DcMotorEx,
     var q: Double,
     var r: Double,
     var n: Int,
@@ -26,34 +27,26 @@ class FullController(
     var kA: Double,
     var kS: Double
 ) {
-    var system: PositionVelocitySystem = TODO()
+    @JvmField var target: Double = 0.0
+    @JvmField var v: Double = 0.0
+    @JvmField var acl: Double = 0.0
 
-    var target: Double = 0.0
-    var v: Double = 0.0
-    var acl: Double = 0.0
+    var posCoefficients = PIDCoefficients(posKP, posKI, posKD)
+    var veloCoefficients = PIDCoefficients(velKP, velKI, velKD)
 
-    var positionFilter:KalmanEstimator = TODO()
-    var velocityFilter:KalmanEstimator = TODO()
+    var posControl = BasicPID(posCoefficients)
+    var veloControl = BasicPID(veloCoefficients)
 
+    var motorPosition = DoubleSupplier { motor.currentPosition.toDouble() }
+    var motorVelocity = DoubleSupplier { motor.velocity }
 
-    init {
-        var posCoefficients = PIDCoefficients(posKP, posKI, posKD)
-        var veloCoefficients = PIDCoefficients(velKP, velKI, velKD)
+    var positionFilter = KalmanEstimator(motorPosition, q,r,n)
+    var velocityFilter = KalmanEstimator(motorVelocity, q,r,n)
 
-        var posControl = BasicPID(posCoefficients)
-        var veloControl = BasicPID(veloCoefficients)
+    var coefficientsFF = FeedforwardCoefficients(kV, kA, kS)
+    var feedforward = BasicFeedforward(coefficientsFF)
 
-        var motorPosition = DoubleSupplier { motor.currentPosition.toDouble() ?: 0.0 }
-        var motorVelocity = DoubleSupplier { motor.velocity ?: 0.0 }
-
-        positionFilter = KalmanEstimator(motorPosition, q,r,n)
-        velocityFilter = KalmanEstimator(motorVelocity, q,r,n)
-
-        var coefficientsFF = FeedforwardCoefficients(kV, kA, kS)
-        var feedforward = BasicFeedforward(coefficientsFF)
-
-        system = PositionVelocitySystem(positionFilter, velocityFilter, feedforward, posControl, veloControl)
-    }
+    var system = PositionVelocitySystem(positionFilter, velocityFilter, feedforward, posControl, NoFeedback())
 
     fun update(): Double {
         return system.update(target, v, acl)
