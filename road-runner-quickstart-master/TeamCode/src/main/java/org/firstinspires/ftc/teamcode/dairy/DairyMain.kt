@@ -39,41 +39,41 @@ class DairyMain: OpMode() {
 
         Mercurial.gamepad2.circle.onTrue(
             Sequential(
-                IntakeClaw.INSTANCE.pitchDown(), // 200 ms
-                IntakeClaw.INSTANCE.openClaw()  // 200 ms
+                IntakeClaw.INSTANCE.pitchDown(), // 200 ms  *
+                IntakeClaw.INSTANCE.openClaw()  // 200 ms  *
             )
         )
         Mercurial.gamepad2.cross.onTrue(
             Sequential(
-                Parallel(
                 IntakeClaw.INSTANCE.closeClaw(), // 200 ms
-                IntakeClaw.INSTANCE.pitchUp(), // 800
+                Parallel(
+                IntakeClaw.INSTANCE.pitchUp(), // 800 ms  *
                 IntakeClaw.INSTANCE.cleanYaw() // 200 ms
-                ), // running parallel est 300 ms saved
+                ), // running parallel est 200 ms saved
 
                 Intake.flipPID(), // 0 ms
                 Intake.goTo(0), // ~300 ms
-                OuttakeClaw.INSTANCE.clawClose(), // 200 ms
-                IntakeClaw.INSTANCE.partialClaw() // 200 ms
+                OuttakeClaw.INSTANCE.clawClose(), // 200 ms  *
+                IntakeClaw.INSTANCE.partialClaw() // 200 ms  *
             )
         )
         Mercurial.gamepad2.square.onTrue(
             Parallel(
                 Lift.goTo(3900), // ~1200 ms
-                OuttakeClaw.INSTANCE.pitchUp() // 200 ms
+                OuttakeClaw.INSTANCE.pitchUp() // 200 ms  *
             )
         )
         Mercurial.gamepad2.rightBumper.onTrue(
             Sequential(
-                OuttakeClaw.INSTANCE.clawOpen(), // 200 ms
-                OuttakeClaw.INSTANCE.clawClose(), // 200 ms
-                OuttakeClaw.INSTANCE.pitchDown(), // 300 ms
+                OuttakeClaw.INSTANCE.clawOpen(), // 200 ms  *
+                OuttakeClaw.INSTANCE.clawClose(), // 200 ms  *
+                OuttakeClaw.INSTANCE.pitchDown(), // 300 ms  *
                 Parallel(
-                    IntakeClaw.INSTANCE.closeClaw(), // 200 ms
-                    OuttakeClaw.INSTANCE.clawOpen(), // 200 ms
-                    Lift.goTo(1000), // ~600 ms
+                    IntakeClaw.INSTANCE.closeClaw(), // 200 ms  *
+                    OuttakeClaw.INSTANCE.clawOpen(), // 200 ms  *
+                    Lift.goTo(0), // ~600 ms
                     Intake.flipPID() // 0 ms
-                ), Lift.goTo(0) // ~300 ms
+                ) // ~300 ms
             )
         )
 
