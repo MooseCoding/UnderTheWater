@@ -38,7 +38,7 @@ import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
 @Intake.Attach
 @Photon
 @Autonomous
-class BlueAuto1: OpMode() {
+class AutoTuning: OpMode() {
     var d: MecanumDrive = TODO()
     val init_pos = Pose2d(12.0, 61.0,0.0)
 
@@ -105,7 +105,7 @@ class BlueAuto1: OpMode() {
             IntakeClawPartial.intakeClawPartial(),
         )
 
-        val scoreSample:Action = SequentialAction(
+        val scoreSample: Action = SequentialAction(
             ParallelAction(
                 SampleHeight.sampleHeight(),
                 OuttakePitchUp.outtakePitchUp()
@@ -115,6 +115,7 @@ class BlueAuto1: OpMode() {
             LiftHome.liftHome()
         )
 
+
         runBlocking(
             SequentialAction(
                 dropOff.build(),
@@ -122,14 +123,7 @@ class BlueAuto1: OpMode() {
                 SpecimenHeight.specimenHeight(),
                 OuttakeClawOpen.outtakeClawOpen(),
                 ClawReturn.clawReturn(),
-                LiftHome.liftHome(), // Done with the specimen
-
-                firstSamplePickUp.build(),
-                pickUpAndTransfer,
-                firstSampleDropOff.build(),
-                scoreSample, // score first sample
-
-
+                LiftHome.liftHome() // Done with the specimen
             )
         )
     }

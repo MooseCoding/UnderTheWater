@@ -13,7 +13,7 @@ class IntakeClawClose() : Action {
         if (!init) {
             waiter = Waiter()
             waiter.start(200)
-            IntakeClaw.INSTANCE.openClaw()
+            IntakeClaw.INSTANCE.closeClaw()
             init = true
         }
 

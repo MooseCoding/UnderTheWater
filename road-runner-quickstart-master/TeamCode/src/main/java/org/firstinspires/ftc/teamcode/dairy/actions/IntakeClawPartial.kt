@@ -5,15 +5,14 @@ import com.acmerobotics.roadrunner.Action
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 
-class IntakePitchUp() : Action {
+class IntakeClawPartial() : Action {
     private var init = false
     private lateinit var waiter:Waiter
 
     override fun run(p: TelemetryPacket): Boolean {
         if (!init) {
-            waiter = Waiter()
-            waiter.start(800)
-            IntakeClaw.INSTANCE.pitchUp()
+            IntakeClaw.INSTANCE.partialClaw()
+            waiter.start(200)
             init = true
         }
 
@@ -21,8 +20,8 @@ class IntakePitchUp() : Action {
     }
 
     companion object {
-        fun intakePitchUp(): Action {
-            return IntakePitchUp()
+        fun intakeClawPartial(): Action {
+            return IntakeClawPartial()
         }
     }
 }
