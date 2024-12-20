@@ -26,6 +26,6 @@ public class Ascent implements Action {
     }
 
     public Action ascent(Lift li) {
-        return new Ascent(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.Ascent(li);
     }
 }

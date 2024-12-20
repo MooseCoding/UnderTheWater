@@ -27,6 +27,6 @@ public class ClawReturn implements Action {
     }
 
     public Action clawReturn(Lift li) {
-        return new ClawReturn(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.ClawReturn(li);
     }
 }

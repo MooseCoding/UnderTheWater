@@ -7,14 +7,14 @@ import com.acmerobotics.roadrunner.Action;
 
 import org.firstinspires.ftc.teamcode.robot.Lift;
 
-public class ClawGrab implements Action {
+public class ClawDropJava implements Action {
     private boolean init = false;
     private Lift claw;
 
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
         if(!init) {
-            claw.pitchHome();
+            claw.pitchDrop();
             claw.clawOpen();
             init = true;
         }
@@ -22,11 +22,11 @@ public class ClawGrab implements Action {
         return false;
     }
 
-    public ClawGrab(Lift li) {
+    public ClawDropJava(Lift li) {
         claw = li;
     }
 
-    public Action clawGrab(Lift li) {
-        return new ClawGrab(li);
+    public Action clawDrop(Lift li) {
+        return new ClawDropJava(li);
     }
 }

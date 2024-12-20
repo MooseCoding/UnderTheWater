@@ -34,7 +34,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 
 @Photon
 @TeleOp
-@Disabled
+
 public class NewMain extends LinearOpMode {
     private final Scalar lowerBlue = new Scalar(100, 150, 50);
     private final Scalar upperBlue = new Scalar(130,255,255);
@@ -166,7 +166,7 @@ public class NewMain extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         while (!isStopRequested()) {
-            fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
+            /*fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
             bL = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
             fR = (DcMotorEx) hardwareMap.dcMotor.get("frontRight");
             bR = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
@@ -198,7 +198,7 @@ public class NewMain extends LinearOpMode {
 
             oM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             oM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
+*/
             // Init the vision portal for the camera
             VisionPortal mVP ;
             VisionPortal.Builder mVPB = new VisionPortal.Builder();
@@ -217,7 +217,11 @@ public class NewMain extends LinearOpMode {
 
                 @Override
                 public Object processFrame(Mat frame, long captureTimeNanos) {
+                    samples.clear();
                     findRectanglesByColor(frame, lowerYellow, upperYellow, Color.YELLOW);
+                    findRectanglesByColor(frame, lowerRed1, upperRed1, Color.RED);
+                    findRectanglesByColor(frame, lowerRed2, upperRed2, Color.RED);
+                    findRectanglesByColor(frame, lowerBlue, upperBlue, Color.BLUE);
 
                     return null;
                 }
@@ -233,6 +237,7 @@ public class NewMain extends LinearOpMode {
             waitForStart();
 
             while (opModeIsActive()) {
+                /*
                 // Drivetrain
                 double max;
 
@@ -411,13 +416,14 @@ public class NewMain extends LinearOpMode {
 
                 if (gamepad1.dpad_up){
                     current_claw_state = CLAW_STATE.HANG;
+                }*/
+
+                for(Sample s : samples) {
+                    telemetry.addData("color: ", s.color);
+                    telemetry.addData("angle", s.rect.angle);
                 }
 
-                telemetry.addData("iM", iM.getCurrentPosition());
-                telemetry.addData("oM1", oM1.getCurrentPosition());
-                telemetry.addData("oM2", oM2.getCurrentPosition());
                 telemetry.update();
-                g.copy(gamepad1);
             }
         }
     }

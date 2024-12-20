@@ -26,6 +26,6 @@ public class IntakePitchDown implements Action {
     }
 
     public Action intakePitchDown(Intake li) {
-        return new IntakePitchDown(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.IntakePitchDown(li);
     }
 }

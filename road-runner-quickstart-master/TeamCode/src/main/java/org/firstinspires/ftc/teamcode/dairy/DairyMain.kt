@@ -45,11 +45,10 @@ class DairyMain: OpMode() {
         )
         Mercurial.gamepad2.cross.onTrue(
             Sequential(
-                Parallel(
                 IntakeClaw.INSTANCE.closeClaw(), // 200 ms
                 IntakeClaw.INSTANCE.pitchUp(), // 800
-                IntakeClaw.INSTANCE.cleanYaw() // 200 ms
-                ), // running parallel est 300 ms saved
+                // IntakeClaw.INSTANCE.cleanYaw() ,// 200 ms
+                 // running parallel est 300 ms saved
 
                 Intake.flipPID(), // 0 ms
                 Intake.goTo(0), // ~300 ms

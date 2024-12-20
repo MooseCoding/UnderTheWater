@@ -102,7 +102,7 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_close
                 update()
-                waiter.start(200)
+                waiter.start(150)
             }
             .setFinish {
                 waiter.isDone

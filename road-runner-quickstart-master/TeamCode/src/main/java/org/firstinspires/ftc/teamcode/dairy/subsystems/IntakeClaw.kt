@@ -78,7 +78,7 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_partial // Partially open the claw
                 update() // force update
-                waiter.start(200)
+                waiter.start(150)
             }
             .setFinish {
                 waiter.isDone
@@ -91,7 +91,7 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 pitch_pos = pitch_up // set the pitch up, at home
                 update()
-                waiter.start(800)
+                waiter.start(900)
             }
             .setFinish {
                 waiter.isDone

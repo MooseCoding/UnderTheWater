@@ -26,6 +26,6 @@ public class IntakeClawOpen implements Action {
     }
 
     public Action intakeClawOpen(Intake li) {
-        return new IntakeClawOpen(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawOpen(li);
     }
 }
