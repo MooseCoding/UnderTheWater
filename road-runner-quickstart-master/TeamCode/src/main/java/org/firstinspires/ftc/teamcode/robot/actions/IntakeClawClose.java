@@ -26,6 +26,6 @@ public class IntakeClawClose implements Action {
     }
 
     public Action intakeClawClose(Intake li) {
-        return new IntakeClawClose(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawClose(li);
     }
 }

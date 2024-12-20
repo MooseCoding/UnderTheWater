@@ -7,18 +7,20 @@ import static org.firstinspires.ftc.teamcode.robot.Intake.pitchUp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.robot.vision.Sample;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
+@Disabled
 public class Robot {
 
     // Lynx modules
@@ -86,11 +88,12 @@ public class Robot {
 
         d = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
+        /*
         hubs = hardwareMap.getAll(LynxModule.class);
 
         for(LynxModule hub: hubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);  
-        }
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }*/
 
 
         fL = (DcMotorEx) hardwareMap.dcMotor.get("frontLeft");
@@ -111,7 +114,7 @@ public class Robot {
          
     }
 
-    public void loop_func(Gamepad g, ArrayList<Sample> samples, double RUNTIME) {
+    public void loop_func(Telemetry telemetry, Gamepad g, ArrayList<Sample> samples, double RUNTIME) {
         // Clearing the hub bulk cache
         for(LynxModule module: hubs) {
             module.clearBulkCache(); 
@@ -156,20 +159,21 @@ public class Robot {
             case INTAKE: {
                 switch(ii) {
                     case OUT: {
-                        l.clawOpen();
+                        Lift.clawOpen();
+                        Intake.pidused = false;
+                        i.clawClose();
                         // iC is closed, intake at 0, oC is open and oP is at home
-                        if(g.right_bumper) {
+                        if(g.triangle) {
                             i.clawOpen();
                             i.pitchDown();
-                            Intake.pidused = false;
-                            ii = INSTATE_INTAKE.GRAB; 
+                            ii = INSTATE_INTAKE.GRAB;
                         }
 
                         if(g.right_trigger > 0) {
-                            i.iM.setPower(0.3);
+                            i.iM.setPower(-0.3);
                         }
                         else if(g.left_trigger > 0) {
-                            i.iM.setPower(-0.3);
+                            i.iM.setPower(0.3);
                         }
                         else {
                             i.iM.setPower(0);
@@ -180,7 +184,7 @@ public class Robot {
                     case GRAB: {
                         aligned = alignClaw(samples); 
 
-                        if(aligned && g.left_bumper) {
+                        if(aligned && g.circle) {
                             i.clawClose();
                             t=RUNTIME;
                             ii = INSTATE_INTAKE.MOVEBACK;
@@ -189,18 +193,20 @@ public class Robot {
                         break; 
                     }
                     case MOVEBACK: {
-                        if(t-RUNTIME > 0.3 && Intake.pitchPos == pitchDown) {
+                        if(RUNTIME-t > 0.3 && Intake.pitchPos == pitchDown) {
                             i.pitchUp();
                             i.cleanYaw();
 
                             t = RUNTIME;
                         }
 
-                        if(t-RUNTIME > 0.3 && Intake.pitchPos == pitchUp){
+                        if(RUNTIME-t > 0.3 && Intake.pitchPos == pitchUp){
                             t = -1;
                         }
 
                         if(t==-1) {
+                            Intake.pidused =true;
+                            t = RUNTIME;
                             Intake.target = 0;
                             ii = INSTATE_INTAKE.OUT;
                             current_claw_state = CLAW_STATE.TRANSFER;
@@ -213,10 +219,11 @@ public class Robot {
             case TRANSFER: {
                 switch(it) {
                     case TRANSFER1: {
-                        l.clawClose();
-                        t = -1;
-                        it = INSTATE_TRANSFER.TRANSFER2;
-
+                        if(RUNTIME-t > 0.3) {
+                            l.clawClose();
+                            t = -1;
+                            it = INSTATE_TRANSFER.TRANSFER2;
+                        }
                         break;
                     }
                     case TRANSFER2: {   
@@ -226,7 +233,7 @@ public class Robot {
                             t = RUNTIME;
                         }   
 
-                        if (t != -1 && RUNTIME - t > 0.2 && g.right_bumper) {
+                        if (t != -1 && RUNTIME - t > 0.2 && g.cross) {
                             t = -1;
                             it = INSTATE_TRANSFER.TRANSFER1;
                             current_claw_state = CLAW_STATE.OUTTAKE;
@@ -252,7 +259,7 @@ public class Robot {
                     case TURN: {
                         l.pitchDrop();
 
-                        if (g.left_bumper) {
+                        if (g.square) {
                             t = -1;
                             io = INSTATE_OUTTAKE.DROP; 
                         }
@@ -271,7 +278,7 @@ public class Robot {
                             l.clawClose();
                             l.pitchHome();
 
-                            if(g.cross) {
+                            if(g.right_bumper) {
                                 l.home();
                                 io = INSTATE_OUTTAKE.LIFT;
                                 current_claw_state = CLAW_STATE.INTAKE;
@@ -286,17 +293,27 @@ public class Robot {
 
         if(ENDGAME) {
             if(g.dpad_left) {
-
+                Lift.pidfused = true;
+                Lift.target = 1000;
+                Intake.pidused = true;
+                Intake.target = 200;
+                h.hangUp();
+            }
+            if(g.dpad_right) {
+                Lift.target = 0;
+                Intake.target = 0;
+                h.hangDown();
             }
         }
 
         if(g.dpad_up || RUNTIME > 90) {
             ENDGAME = true; 
         }
-    }
 
-    public void axon_loop(Gamepad g) {
-
+        telemetry.addData("ii", ii);
+        telemetry.addData("claw state", current_claw_state);
+        telemetry.addData("t", t);
+        telemetry.addData("runtime", RUNTIME);
     }
 
     public void displayCycleTimes(String status) {

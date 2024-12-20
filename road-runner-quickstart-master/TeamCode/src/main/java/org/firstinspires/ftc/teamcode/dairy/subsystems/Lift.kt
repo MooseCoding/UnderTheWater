@@ -6,11 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
-import org.firstinspires.ftc.teamcode.dairy.control.FullController
+import org.firstinspires.ftc.teamcode.dairy.control.PIDF
 import java.lang.annotation.Inherited
 
 @Config
@@ -21,18 +19,21 @@ class Lift private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
-    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
+    override var dependency: Dependency<*> =
+        Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
-        val hardwareMap = opMode.opMode.hardwareMap
-        outtake1 = hardwareMap.get(DcMotorEx::class.java, "outtake1")
-        outtake2 = hardwareMap.get(DcMotorEx::class.java, "outtake2")
-        outtake2?.direction = DcMotorSimple.Direction.REVERSE
+        val hardwareMap = opMode.opMode.hardwareMap // Init the hardware map
+        outtake1 = hardwareMap.get(DcMotorEx::class.java, "outtake1") // give outtake1 a motor
+        outtake2 = hardwareMap.get(DcMotorEx::class.java, "outtake2") // give outtake 2 a motor
+        outtake2?.direction = DcMotorSimple.Direction.REVERSE // flip outtake 2 to reversed
+
         defaultCommand = update()
 
+        /*
         pid = FullController(
             motor = outtake1!!,
-            q = k,
+            q = q,
             r = r,
             n = n.toInt(),
             posKP = pkP,
@@ -45,8 +46,10 @@ class Lift private constructor() : Subsystem {
             kA = kA,
             kS = kS
         )
+        */
 
-        time = opMode.opMode.runtime
+        pidf = PIDF(outtake1!!, p, i, d, f) // give the PIDF controller a value
+
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
@@ -54,74 +57,84 @@ class Lift private constructor() : Subsystem {
     }
 
     companion object {
-        val INSTANCE: Lift = Lift()
-        private var outtake1: DcMotorEx? = null
-        private var outtake2: DcMotorEx? = null
-        private var pid: FullController? = null
-        private const val k = 0.0
-        private const val r = 0.0
-        private const val n = 0.0
+        @JvmField
+        var pidfused: Boolean =
+            true // if pidfused is true, the lift will run with the pid controller
+        val INSTANCE: Lift = Lift() // static object
+        var outtake1: DcMotorEx? = null // Init the motor to null
+        var outtake2: DcMotorEx? = null // init the motor to null
+        var pidf: PIDF? = null
 
-        private const val pkP = .004
-        private const val pkD = .0004
-        private const val pkI = 0.0
+        @JvmField
+        var target: Double = 0.0
 
-        private const val vkP = 0.0
-        private const val vkD = 0.0
-        private const val vkI = 0.0
+        var time = 0.0
 
-        private const val kV = 0.0
-        private const val kA = 0.0
-        private const val kS = 0.0
+        @JvmField
+        var p: Double = 0.01
+        @JvmField
+        var i: Double = 0.0001
+        @JvmField
+        var d: Double = 0.0003
+        @JvmField
+        var f: Double = 0.0001
 
-        private var target = 0.0
+        /*
 
-        private var time = 0.0
+        @JvmField var q = 0.0
+        @JvmField var r = 0.0
+        @JvmField var n = 0.0
+
+        @JvmField var pkP = .004
+        @JvmField var pkD = .0004
+        @JvmField var pkI = 0.0
+
+        @JvmField var vkP = 0.0
+        @JvmField var vkD = 0.0
+        @JvmField var vkI = 0.0
+
+        @JvmField  var kV = 0.0
+        @JvmField  var kA = 0.0
+        @JvmField var kS = 0.0
+
+         */
+        @JvmField
+        var tolerance = 20
+
+
+    fun pidUpdate() {
+        pidf!!.target = target.toInt() // Set the target for FullController
+
+        val power: Double = pidf!!.update() ?: 0.0
+        outtake1!!.power = power
+        outtake2!!.power = power
     }
 
-        fun pidUpdate() {
-            pid!!.target = target // Set the target for FullController
-
-            // Check for null values before using them
-            outtake1?.let { motor ->
-                val power: Double = pid?.update(time) ?: 0.0
-                outtake1?.power = power
-                outtake2?.power = power
+    fun update(): Lambda {
+        return Lambda("update the pid")
+            .addRequirements()
+            .setExecute {
+                if (pidfused) {
+                    pidUpdate()
+                }
             }
-        }
+            .setFinish { false }
+    }
 
-        fun update(): Lambda {
-            return Lambda("update the pid")
-                .addRequirements(INSTANCE)
-                .setExecute { pidUpdate() }
-                .setFinish { false }
-        }
+    fun goTo(to: Int): Lambda {
+        return Lambda("set pid target")
+            .setInit {
+                target = to.toDouble()
+                pidf!!.target = target.toInt()
+            }
+            .setExecute {
+                update()
+            }
+            .setFinish { true }
+    }
 
-        fun goTo(to: Int): Lambda {
-            return Lambda("set pid target")
-                .setExecute {
-                    target = to.toDouble()
-                    pid!!.target = target    // Update target in controller
-                }
-        }
-
-        fun dropSample(): Lambda {
-            return Lambda("drop sample")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if (gamepad1.rightTrigger.state >= .1) {
-                        goTo(3000)
-                    }
-                }
-        }
-
-        fun returnHome(): Lambda {
-            return Lambda("lift down")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if(gamepad1.leftTrigger.state >= .1) {
-                        goTo(0)
-                    }
-                }
-        }
+    fun atTarget(): Boolean {
+        return (outtake1!!.currentPosition >= (target - tolerance) || outtake1!!.currentPosition <= (target + tolerance))
+    }
+}
 }

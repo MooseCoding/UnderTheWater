@@ -6,17 +6,21 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
+@Disabled
 public class Lift {
 
     public static DcMotorEx  oM1;
     public DcMotorEx oM2;
     private Servo outtakeClaw, outtakePitch;
+
+    private Servo t;
     private PIDFController controller;
 
     public static double target = 0.0;
@@ -29,9 +33,9 @@ public class Lift {
     public static boolean pidfused = true;
 
     public static double clawOpen = 0.9;
-    public static double clawClose = 0.63;
-    public static double pitchDown = 0.53;
-    public static double pitchUp = 0.21;
+    public static double clawClose = 0.52;
+    public static double pitchDown = 0.36;
+    public static double pitchUp = 0;
 
     public static double pitchPos = pitchDown;
     public static double clawPos = clawOpen;
@@ -43,7 +47,9 @@ public class Lift {
         oM2 = (DcMotorEx) hardwareMap.dcMotor.get("outtake2");
         oM2.setDirection(DcMotorSimple.Direction.REVERSE);
         outtakeClaw = hardwareMap.servo.get("outtakeClaw");
-        outtakePitch = hardwareMap.servo.get("outtakePitch");
+        outtakePitch = hardwareMap.servo.get("t");
+        pitchPos = pitchDown;
+        clawPos = clawOpen;
     }
 
     public void update() {

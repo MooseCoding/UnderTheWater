@@ -26,6 +26,6 @@ public class IntakePitchUp implements Action {
     }
 
     public Action intakePitchUp(Intake li) {
-        return new IntakePitchUp(li);
+        return new org.firstinspires.ftc.teamcode.dairy.actions.IntakePitchUp(li);
     }
 }

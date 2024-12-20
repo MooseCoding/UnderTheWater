@@ -2,14 +2,15 @@ package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
 import org.firstinspires.ftc.teamcode.dairy.control.FullController
+import org.firstinspires.ftc.teamcode.dairy.control.PID
+import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 import java.lang.annotation.Inherited
 
 @Config
@@ -20,102 +21,120 @@ class Intake private constructor() : Subsystem {
     @Inherited
     annotation class Attach
 
-    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
+    override var dependency: Dependency<*> =
+        Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
 
     override fun postUserInitHook(opMode: Wrapper) {
-        val hardwareMap = opMode.opMode.hardwareMap
-        intake = hardwareMap.get(DcMotorEx::class.java, "intake")
-        defaultCommand = update()
+        val hardwareMap = opMode.opMode.hardwareMap // Get the Hardware map from the current opmode
+        intake = hardwareMap.get(DcMotorEx::class.java, "intake") // Get the intake motor from the HW map
+        intake!!.direction = DcMotorSimple.Direction.REVERSE // Reverse the intake motor
+        defaultCommand = update() // default command to run each loop
 
-        pid = FullController(
-            motor = intake!!,
-            q = k,
-            r = r,
-            n = n.toInt(),
-            posKP = pkP,
-            posKI = pkI,
-            posKD = pkD,
-            velKP = vkP,
-            velKI = vkI,
-            velKD = vkD,
-            kV = kV,
-            kA = kA,
-            kS = kS
-        )
+       /* pid = FullController(
+            intake!!,
+            q,
+            r,
+            n.toInt(),
+            pkP,
+            pkI,
+            pkD,
+            vkP,
+            vkI,
+            vkD,
+            kV,
+            kA,
+            kS
+        )*/
 
-        time = opMode.opMode.runtime
+        pid = PID(intake!!, p, i, d) // init the pid controller
+
+        waiter = Waiter()
     }
 
     override fun postUserLoopHook(opMode: Wrapper) {
+
     }
 
     companion object {
-        val INSTANCE: Intake = Intake()
-        var intake: DcMotorEx? = null
+        val INSTANCE: Intake = Intake() // Static definition
+        var intake: DcMotorEx? = null // Motor init
 
-        private var pid: FullController? = null
-        const val k = 0.0
-        const val r = 0.0
-        const val n = 0.0
 
-        const val pkP = .004
-        const val pkD = .0004
-        const val pkI = 0.0
+        @JvmField var pidused: Boolean = false // If true, the PID controller will run otherwise it will not
 
-        const val vkP = 0.0
-        const val vkD = 0.0
-        const val vkI = 0.0
+        /* Fields for using dual Kalman Filter, Dual PID, and Feedforward controller
+        @JvmField var q: Double = 100.0
+        @JvmField var r: Double = 1.0
+        @JvmField var n: Double = 10.0
 
-        const val kV = 0.0
-        const val kA = 0.0
-        const val kS = 0.0
+        @JvmField var pkP: Double = 0.0
+        @JvmField var pkD: Double = 0.0
+        @JvmField var pkI: Double = 0.0
 
-        var target = 0.0
+        @JvmField var vkP: Double = 0.0
+        @JvmField var vkD: Double = 0.0
+        @JvmField var vkI: Double = 0.0
 
-        var time = 0.0
+        @JvmField  var kV : Double= 0.0
+        @JvmField  var kA : Double= 0.0
+        @JvmField var kS : Double= 0.0
+        */
+
+        @JvmField var p: Double = 0.02 // proportional term of the pid controller
+        @JvmField var i: Double = 0.000001 // integral term of the pid controller
+        @JvmField var d: Double = 0.0003 // derivative term of the pid controller
+
+        var pid: PID? = null // init the pid controller
+
+        private lateinit var waiter:Waiter
+
+        @JvmField var tolerance : Int= 10 // tolerance for the pid controller
+
+        @JvmField var target: Double = 0.0 // target for the pid controller
+
+        /*
+        @JvmField  var targetV : Double= 0.0
+        @JvmField var targetA : Double= 0.0*/
 
         fun pidUpdate() {
-            pid!!.target = target.toDouble() // Set the target for FullController
+            pid!!.target = target.toInt() // Set the target for FullController
 
-            intake?.let { motor ->
-                val power: Double = pid?.update(time) ?: 0.0
-                intake?.power = power
-            }
+            intake!!.power = pid!!.update() // change the power of the intake motor according to the PID
         }
 
         fun update(): Lambda {
             return Lambda("update the pid")
-                .addRequirements(INSTANCE)
-                .setExecute { pidUpdate() }
+                .addRequirements()
+                .setExecute {
+                    if(pidused)
+                    {pidUpdate() }
+                }
                 .setFinish { false }
         }
 
         fun goTo(to: Int): Lambda {
             return Lambda("set pid target")
-                .setExecute {
-                    target = to.toDouble()
-                    pid!!.target = target.toDouble() // Update target in controller
+                .setInit {
+                    target = to.toDouble() // set the controller target
+                    pid!!.target = target.toInt() // Update target in controller
+                    waiter.start(300)
                 }
+                .setExecute {
+                    update()
+                }
+                .setFinish { waiter.isDone }
         }
 
-        fun extendOut(): Lambda {
-            return Lambda("extend out")
-                .setRequirements(INSTANCE)
-                .setExecute {
-                    if (gamepad1.rightTrigger.state >= .1) {
-                        goTo(intake!!.currentPosition + 20)
-                    }
-                }
+        fun atTarget(): Boolean {
+            return (intake!!.currentPosition >= (target - tolerance) && intake!!.currentPosition <= (target + tolerance)) // If intake pos is within the tolerance
         }
 
-        fun returnHome(): Lambda {
-            return Lambda("go home")
-                .setRequirements(INSTANCE)
+        fun flipPID(): Lambda {
+            return Lambda("flip PID value")
                 .setExecute {
-                    if (gamepad1.leftTrigger.state >= .1) {
-                        goTo(intake!!.currentPosition - 20)
-                    }
+                    pidused = !pidused // change the pid value to be what is it
                 }
+                .setFinish{true}
         }
     }
 }
