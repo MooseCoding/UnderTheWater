@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.Action
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
 
+@Lift.Attach
 class SampleHeight() : Action {
     private var init = false
 
@@ -17,7 +18,7 @@ class SampleHeight() : Action {
 
         Lift.update()
 
-        return Lift.outtake1!!.currentPosition <= 3900
+        return Lift.outtake1!!.currentPosition >= 3800
     }
 
     companion object {

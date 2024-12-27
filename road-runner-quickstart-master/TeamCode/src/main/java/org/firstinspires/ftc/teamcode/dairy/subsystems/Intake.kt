@@ -129,10 +129,18 @@ class Intake private constructor() : Subsystem {
             return (intake!!.currentPosition >= (target - tolerance) && intake!!.currentPosition <= (target + tolerance)) // If intake pos is within the tolerance
         }
 
-        fun flipPID(): Lambda {
+        fun pidFalse(): Lambda {
             return Lambda("flip PID value")
                 .setExecute {
-                    pidused = !pidused // change the pid value to be what is it
+                    pidused = false // change the pid value to be what is it
+                }
+                .setFinish{true}
+        }
+
+        fun pidTrue(): Lambda {
+            return Lambda("flip PID value")
+                .setExecute {
+                    pidused = true // change the pid value to be what is it
                 }
                 .setFinish{true}
         }

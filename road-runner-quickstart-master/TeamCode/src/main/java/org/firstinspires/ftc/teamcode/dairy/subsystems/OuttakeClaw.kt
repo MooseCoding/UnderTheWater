@@ -42,10 +42,10 @@ class OuttakeClaw private constructor() : Subsystem {
     }
 
     companion object {
-        private val claw_open: Double = 0.9
-        private val claw_close: Double = 0.53
-        private val pitch_up: Double = 0.04
-        private val pitch_down: Double = 0.35
+         val claw_open: Double = 0.9
+         val claw_close: Double = 0.53
+         val pitch_up: Double = 0.04
+         val pitch_down: Double = 0.35
 
         private lateinit var waiter: Waiter
 

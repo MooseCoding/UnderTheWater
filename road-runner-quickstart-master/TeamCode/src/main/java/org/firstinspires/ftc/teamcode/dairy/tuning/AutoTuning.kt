@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.dairy
+package org.firstinspires.ftc.teamcode.dairy.tuning
 
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.ParallelAction
@@ -30,8 +30,8 @@ import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawOpen
 import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchUp
 import org.firstinspires.ftc.teamcode.dairy.actions.SampleHeight
 import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
+import org.firstinspires.ftc.teamcode.dairy.util.SilkRoad
 
-@Mercurial.Attach
 @Lift.Attach
 @OuttakeClaw.Attach
 @IntakeClaw.Attach
@@ -40,17 +40,13 @@ import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
 @Autonomous
 class AutoTuning: OpMode() {
     var d: MecanumDrive = TODO()
-    val init_pos = Pose2d(12.0, 61.0,0.0)
+    val init_pos = Pose2d(12.0, 61.0,-Math.PI/2)
 
     override fun init() {
         d = MecanumDrive(hardwareMap, init_pos)
-
-        runBlocking(
-            OuttakeClawClose.outtakeClawClose()
-        )
     }
 
-    override fun loop() {
+    override fun init_loop() {
         val dropOff: TrajectoryActionBuilder = d.actionBuilder(init_pos)
             .lineToY(36.0)
 
@@ -126,6 +122,10 @@ class AutoTuning: OpMode() {
                 LiftHome.liftHome() // Done with the specimen
             )
         )
+    }
+
+    override fun loop() {
+
     }
 
 }

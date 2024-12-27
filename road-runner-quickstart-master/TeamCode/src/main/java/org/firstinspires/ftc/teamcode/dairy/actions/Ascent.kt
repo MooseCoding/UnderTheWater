@@ -13,7 +13,7 @@ class Ascent() : Action {
             init = true
         }
 
-        return Lift.outtake1!!.currentPosition < 900
+        return Lift.outtake1!!.currentPosition > 900
     }
 
     companion object {

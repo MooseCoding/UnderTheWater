@@ -21,7 +21,11 @@ class LiftHome() : Action {
             Lift.pidfused = false
         }
 
-        return Lift.outtake1!!.currentPosition >= 30
+        if(Lift.outtake1!!.currentPosition < 50) {
+            return false
+        }
+
+        return true
     }
 
     companion object {

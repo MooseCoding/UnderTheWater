@@ -13,11 +13,11 @@ class IntakePitchUp() : Action {
         if (!init) {
             waiter = Waiter()
             waiter.start(800)
-            IntakeClaw.INSTANCE.pitchUp()
+            IntakeClaw.pitch_pos = IntakeClaw.pitch_up
             init = true
         }
 
-        return !waiter.isDone
+        return waiter.isDone
     }
 
     companion object {

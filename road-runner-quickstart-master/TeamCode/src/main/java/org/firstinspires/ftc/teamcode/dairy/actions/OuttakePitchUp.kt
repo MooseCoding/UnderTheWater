@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
 import org.firstinspires.ftc.teamcode.dairy.util.Waiter
+@OuttakeClaw.Attach
 
 class OuttakePitchUp() : Action {
     private var init = false
@@ -13,11 +14,11 @@ class OuttakePitchUp() : Action {
         if (!init) {
             waiter = Waiter()
             waiter.start(200)
-            OuttakeClaw.INSTANCE.pitchUp()
+            OuttakeClaw.pitch_pos = OuttakeClaw.pitch_up
             init = true
         }
 
-        return !waiter.isDone
+        return waiter.isDone
     }
 
     companion object {

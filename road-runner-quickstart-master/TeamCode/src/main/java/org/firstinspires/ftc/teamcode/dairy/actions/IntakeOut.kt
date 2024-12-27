@@ -16,7 +16,7 @@ class IntakeOut() : Action {
             init = true
         }
 
-        return Intake.intake!!.currentPosition <= 280
+        return Intake.intake!!.currentPosition >= 280
     }
 
     companion object {

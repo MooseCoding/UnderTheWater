@@ -125,19 +125,19 @@ class IntakeClaw private constructor() : Subsystem {
     }
 
     companion object {
-        private val claw_open: Double = 0.9 // TUNED - Dec 12
-        private val claw_close: Double = 0.6 // TUNED - Dec 12
-        private val pitch_up: Double = 0.118 // TUNED - Dec 12
-        private val pitch_down: Double = 0.22 // TUNED - Dec 12
-        private val yaw_home: Double = 0.39 // TUNED - Dec 12
-        private val claw_partial: Double = 0.74 // TUNED - Dec 12
+         val claw_open: Double = 0.9 // TUNED - Dec 12
+         val claw_close: Double = 0.6 // TUNED - Dec 12
+         val pitch_up: Double = 0.118 // TUNED - Dec 12
+         val pitch_down: Double = 0.22 // TUNED - Dec 12
+         val yaw_home: Double = 0.39 // TUNED - Dec 12
+         val claw_partial: Double = 0.74 // TUNED - Dec 12
 
         var telemetry:Telemetry? = null
 
         val INSTANCE: IntakeClaw = IntakeClaw() // Static instiantion
 
         @JvmField
-        var claw_pos: Double = claw_close // Claw pos starts closed
+        var claw_pos: Double = claw_partial // Claw pos starts closed
 
         @JvmField
         var pitch_pos: Double = pitch_up // Pitch pos starts up, which is at home

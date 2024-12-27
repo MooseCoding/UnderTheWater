@@ -20,7 +20,7 @@ class IntakeIn() : Action {
             Intake.pidused = false
         }
 
-        return Intake.intake!!.currentPosition >= 20
+        return Intake.intake!!.currentPosition <= 19
     }
 
     companion object {

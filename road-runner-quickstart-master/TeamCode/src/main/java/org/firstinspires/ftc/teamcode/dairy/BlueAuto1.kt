@@ -30,6 +30,7 @@ import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawOpen
 import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchUp
 import org.firstinspires.ftc.teamcode.dairy.actions.SampleHeight
 import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
+import org.firstinspires.ftc.teamcode.dairy.util.SilkRoad
 
 @Mercurial.Attach
 @Lift.Attach
@@ -38,6 +39,7 @@ import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
 @Intake.Attach
 @Photon
 @Autonomous
+@SilkRoad.Attach
 class BlueAuto1: OpMode() {
     var d: MecanumDrive = TODO()
     val init_pos = Pose2d(12.0, 61.0,0.0)
@@ -128,8 +130,6 @@ class BlueAuto1: OpMode() {
                 pickUpAndTransfer,
                 firstSampleDropOff.build(),
                 scoreSample, // score first sample
-
-
             )
         )
     }

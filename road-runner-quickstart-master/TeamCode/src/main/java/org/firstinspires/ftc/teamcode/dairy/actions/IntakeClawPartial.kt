@@ -11,12 +11,12 @@ class IntakeClawPartial() : Action {
 
     override fun run(p: TelemetryPacket): Boolean {
         if (!init) {
-            IntakeClaw.INSTANCE.partialClaw()
+            IntakeClaw.claw_pos = IntakeClaw.claw_partial
             waiter.start(200)
             init = true
         }
 
-        return !waiter.isDone
+        return waiter.isDone
     }
 
     companion object {

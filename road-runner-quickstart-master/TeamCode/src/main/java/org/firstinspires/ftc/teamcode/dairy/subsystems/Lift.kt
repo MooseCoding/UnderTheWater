@@ -9,6 +9,7 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.dairy.control.PIDF
+import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pidused
 import java.lang.annotation.Inherited
 
 @Config
@@ -99,7 +100,7 @@ class Lift private constructor() : Subsystem {
 
          */
         @JvmField
-        var tolerance = 20
+        var tolerance = 200
 
 
     fun pidUpdate() {
@@ -117,6 +118,10 @@ class Lift private constructor() : Subsystem {
                 if (pidfused) {
                     pidUpdate()
                 }
+                else {
+                    outtake1!!.power = 0.0
+                    outtake2!!.power = 0.0
+                }
             }
             .setFinish { false }
     }
@@ -130,11 +135,34 @@ class Lift private constructor() : Subsystem {
             .setExecute {
                 update()
             }
-            .setFinish { true }
+            .setFinish { atTarget() }
     }
 
+        fun pidfFalse(): Lambda {
+            return Lambda("flip PID value")
+                .setExecute {
+                    pidfused = false // change the pid value to be what is it
+                }
+                .setFinish{true}
+        }
+
+        fun pidfTrue(): Lambda {
+            return Lambda("flip PID value")
+                .setExecute {
+                    pidfused = true // change the pid value to be what is it
+                }
+                .setFinish{true}
+        }
+
     fun atTarget(): Boolean {
-        return (outtake1!!.currentPosition >= (target - tolerance) || outtake1!!.currentPosition <= (target + tolerance))
+        if(outtake1!!.currentPosition < target) {
+            return (outtake1!!.currentPosition >= (target - tolerance))
+        }
+
+        else {
+            return outtake1!!.currentPosition <= (target + tolerance)
+        }
+
     }
 }
 }

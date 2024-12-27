@@ -39,6 +39,7 @@ class DairyMain: OpMode() {
 
         Mercurial.gamepad2.circle.onTrue(
             Sequential(
+                Lift.pidfFalse(),
                 IntakeClaw.INSTANCE.pitchDown(), // 200 ms
                 IntakeClaw.INSTANCE.openClaw()  // 200 ms
             )
@@ -50,7 +51,7 @@ class DairyMain: OpMode() {
                 // IntakeClaw.INSTANCE.cleanYaw() ,// 200 ms
                  // running parallel est 300 ms saved
 
-                Intake.flipPID(), // 0 ms
+                Intake.pidTrue(), // 0 ms
                 Intake.goTo(0), // ~300 ms
                 OuttakeClaw.INSTANCE.clawClose(), // 200 ms
                 IntakeClaw.INSTANCE.partialClaw() // 200 ms
@@ -58,6 +59,7 @@ class DairyMain: OpMode() {
         )
         Mercurial.gamepad2.square.onTrue(
             Parallel(
+                Lift.pidfTrue(),
                 Lift.goTo(3900), // ~1200 ms
                 OuttakeClaw.INSTANCE.pitchUp() // 200 ms
             )
@@ -69,10 +71,10 @@ class DairyMain: OpMode() {
                 OuttakeClaw.INSTANCE.pitchDown(), // 300 ms
                 Parallel(
                     IntakeClaw.INSTANCE.closeClaw(), // 200 ms
-                    OuttakeClaw.INSTANCE.clawOpen(), // 200 ms
-                    Lift.goTo(1000), // ~600 ms
-                    Intake.flipPID() // 0 ms
-                ), Lift.goTo(0) // ~300 ms
+                    OuttakeClaw.INSTANCE.clawOpen(), // 200 ms // ~600 ms
+                    Intake.pidFalse() // 0 ms
+                ), Lift.goTo(0),
+                Lift.pidfFalse() // ~300 ms
             )
         )
 
@@ -86,7 +88,7 @@ class DairyMain: OpMode() {
         Mercurial.gamepad2.dpadRight.onTrue(
             Sequential(
                 IntakeClaw.INSTANCE.closeClaw(), IntakeClaw.INSTANCE.pitchUp(),
-                IntakeClaw.INSTANCE.cleanYaw(), Intake.flipPID(), Intake.goTo(0), Intake.flipPID()
+                IntakeClaw.INSTANCE.cleanYaw(), Intake.pidTrue(), Intake.goTo(0), Intake.pidFalse()
             )
         )
 
@@ -101,7 +103,7 @@ class DairyMain: OpMode() {
                 IntakeClaw.INSTANCE.closeClaw(),
                 IntakeClaw.INSTANCE.pitchUp(),
                 IntakeClaw.INSTANCE.cleanYaw(),
-                Intake.flipPID(),
+                Intake.pidTrue(),
                 Intake.goTo(0),
                 OuttakeClaw.INSTANCE.clawClose(),
                 IntakeClaw.INSTANCE.partialClaw()
@@ -150,7 +152,17 @@ class DairyMain: OpMode() {
             addData("intake pos", Intake.intake!!.currentPosition)
             addData("intake pid", Intake.pidused)
             addData("intake target", Intake.target)
+            addData("lift target", Lift.target)
+            addData("om1 pos", Lift.outtake1!!.currentPosition)
+            addData("om2 pos", Lift.outtake2!!.currentPosition)
+
+            addData("pidf", Lift.pidfused)
+            addData("om1p", Lift.outtake1!!.power)
+            addData("om2p", Lift.outtake2!!.power)
+            addData("onTarget", Lift.atTarget())
         }
+
+        telemetry.update()
     }
 
 }

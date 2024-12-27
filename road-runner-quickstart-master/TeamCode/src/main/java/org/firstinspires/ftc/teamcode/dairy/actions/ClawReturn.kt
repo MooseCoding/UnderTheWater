@@ -14,16 +14,16 @@ class ClawReturn() : Action {
         if (!init) {
             waiter = Waiter()
             waiter.start(200)
-            OuttakeClaw.INSTANCE.pitchDown()
+            OuttakeClaw.pitch_pos = OuttakeClaw.pitch_down
             init = true
         }
 
         if(waiter.isDone && i == 0) {
-            OuttakeClaw.INSTANCE.clawOpen()
+            OuttakeClaw.claw_pos = OuttakeClaw.claw_open
             i = 1
         }
 
-        return i != 1
+        return i == i
     }
 
     companion object {
