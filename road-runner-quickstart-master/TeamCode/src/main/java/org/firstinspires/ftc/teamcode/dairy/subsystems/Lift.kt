@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
@@ -100,7 +101,7 @@ class Lift private constructor() : Subsystem {
 
          */
         @JvmField
-        var tolerance = 200
+        var tolerance = 600
 
 
     fun pidUpdate() {
@@ -135,7 +136,17 @@ class Lift private constructor() : Subsystem {
             .setExecute {
                 update()
             }
-            .setFinish { atTarget() }
+            .setFinish {
+                if(atTarget() && target.toInt() == 0) {
+                    outtake1!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+                    outtake2!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+                    true
+                }
+                else if(atTarget()){
+                    true
+                }
+                else false
+            }
     }
 
         fun pidfFalse(): Lambda {

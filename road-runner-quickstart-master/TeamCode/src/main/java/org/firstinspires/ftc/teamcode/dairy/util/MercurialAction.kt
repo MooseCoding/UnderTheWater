@@ -15,7 +15,7 @@ class MercurialAction(private val command: Command) : Action {
             this.initialized = true
         }
         p.addLine("Scheduled $command")
-        val finished = initialized && !isScheduled(command)
+        val finished = initialized && !isScheduled(command) && command.finished()
         if (finished) this.initialized = false
         return finished
     }
