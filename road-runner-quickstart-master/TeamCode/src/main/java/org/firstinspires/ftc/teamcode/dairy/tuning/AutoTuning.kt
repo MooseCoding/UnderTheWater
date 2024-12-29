@@ -10,13 +10,12 @@ import com.acmerobotics.roadrunner.ftc.runBlocking
 import com.outoftheboxrobotics.photoncore.Photon
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import dev.frozenmilk.mercurial.Mercurial
 import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawClose
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
-import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive
+import org.firstinspires.ftc.teamcode.old.teamcode.MecanumDrive
 import org.firstinspires.ftc.teamcode.dairy.actions.ClawReturn
 import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawClose
 import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawOpen
@@ -30,7 +29,6 @@ import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawOpen
 import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchUp
 import org.firstinspires.ftc.teamcode.dairy.actions.SampleHeight
 import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
-import org.firstinspires.ftc.teamcode.dairy.util.SilkRoad
 
 @Lift.Attach
 @OuttakeClaw.Attach
@@ -43,7 +41,10 @@ class AutoTuning: OpMode() {
     val init_pos = Pose2d(12.0, 61.0,-Math.PI/2)
 
     override fun init() {
-        d = MecanumDrive(hardwareMap, init_pos)
+        d = MecanumDrive(
+            hardwareMap,
+            init_pos
+        )
     }
 
     override fun init_loop() {

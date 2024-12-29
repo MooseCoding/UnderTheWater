@@ -6,22 +6,14 @@ import com.acmerobotics.roadrunner.SequentialAction
 import com.acmerobotics.roadrunner.SleepAction
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder
 import com.acmerobotics.roadrunner.Vector2d
-import com.acmerobotics.roadrunner.ftc.runBlocking
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import dev.frozenmilk.mercurial.Mercurial
-import dev.frozenmilk.mercurial.commands.MercurialException
-import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawClose
-import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawOpen
-import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchDown
-import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchUp
-import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
-import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeightI
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
 import org.firstinspires.ftc.teamcode.dairy.util.MercurialAction
 import org.firstinspires.ftc.teamcode.dairy.util.SilkRoad
-import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive
+import org.firstinspires.ftc.teamcode.old.teamcode.MecanumDrive
 
 @OuttakeClaw.Attach
 @Lift.Attach
@@ -39,7 +31,10 @@ class MATuning : OpMode() {
     private var init:Boolean = false
 
     override fun init() {
-        d = MecanumDrive(hardwareMap, init_pos)
+        d = MecanumDrive(
+            hardwareMap,
+            init_pos
+        )
 
         dropOff = d!!.actionBuilder(init_pos)
             .strafeTo(Vector2d(12.0, 40.0))

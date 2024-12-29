@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.ArrayList;
 
-import org.firstinspires.ftc.teamcode.robot.vision.Sample;
+import org.firstinspires.ftc.teamcode.old.robot.vision.Sample;
 import org.opencv.core.Scalar;
 import org.openftc.easyopencv.OpenCvCamera;
 
