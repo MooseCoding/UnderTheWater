@@ -6,9 +6,8 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.old.teamcode.MecanumDrive;
 
 @Autonomous
 public class MATune extends OpMode {

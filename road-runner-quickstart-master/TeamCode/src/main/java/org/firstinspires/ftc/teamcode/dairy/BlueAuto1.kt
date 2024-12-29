@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
-import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive
+import org.firstinspires.ftc.teamcode.old.teamcode.MecanumDrive
 import org.firstinspires.ftc.teamcode.dairy.actions.ClawReturn
 import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawClose
 import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawOpen
@@ -45,7 +45,10 @@ class BlueAuto1: OpMode() {
     val init_pos = Pose2d(12.0, 61.0,0.0)
 
     override fun init() {
-        d = MecanumDrive(hardwareMap, init_pos)
+        d = MecanumDrive(
+            hardwareMap,
+            init_pos
+        )
 
         runBlocking(
             OuttakeClawClose.outtakeClawClose()
