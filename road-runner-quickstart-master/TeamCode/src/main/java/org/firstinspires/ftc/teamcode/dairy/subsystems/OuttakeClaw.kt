@@ -42,10 +42,10 @@ class OuttakeClaw private constructor() : Subsystem {
     }
 
     companion object {
-        private val claw_open: Double = 0.9
-        private val claw_close: Double = 0.53
-        private val pitch_up: Double = 0.04
-        private val pitch_down: Double = 0.35
+         val claw_open: Double = 0.9
+         val claw_close: Double = 0.53
+         val pitch_up: Double = 0.04
+         val pitch_down: Double = 0.35
 
         private lateinit var waiter: Waiter
 
@@ -76,10 +76,9 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 pitch_pos = pitch_up
                 update()
-                waiter.start(200)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -89,10 +88,10 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 pitch_pos = pitch_down
                 update()
-                waiter.start(300)
+
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -102,10 +101,9 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_close
                 update()
-                waiter.start(150)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -115,10 +113,9 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_open
                 update()
-                waiter.start(200)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 }

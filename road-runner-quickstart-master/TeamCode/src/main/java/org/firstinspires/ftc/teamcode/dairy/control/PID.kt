@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.dairy.control
 import com.acmerobotics.dashboard.config.Config
 import com.arcrobotics.ftclib.controller.PIDController
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import org.firstinspires.ftc.teamcode.robot.Intake
 
 @Config
 class PID(

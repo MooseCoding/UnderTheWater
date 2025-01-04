@@ -24,13 +24,13 @@ public class MeepMeepTesting {
                     .lineToY(-36)
                                 .waitSeconds(4)
 
-                .lineToY(-40)
+                /* .lineToY(-40)
                 .strafeTo(new Vector2d(-35, -40))
                 .strafeTo(new Vector2d(-35, -0))
                 .turn(-Math.PI/2)
-                .lineToX(-24)
-/*
-                // First sample pickup
+                .lineToX(-24) */
+
+                 // First sample pickup
                     .splineTo(new Vector2d(-48, -37), Math.PI/2)
                 .waitSeconds(1)
 
@@ -58,7 +58,7 @@ public class MeepMeepTesting {
                         .splineTo(new Vector2d(-24, -12), 0)
                         .turn(-Math.PI/2)
 
-*/
+
                 .build());
 
                 /*

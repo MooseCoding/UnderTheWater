@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.dairy
 
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.SequentialAction
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder
 import com.acmerobotics.roadrunner.Vector2d
 import com.acmerobotics.roadrunner.ftc.runBlocking
@@ -8,12 +11,26 @@ import com.outoftheboxrobotics.photoncore.Photon
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import dev.frozenmilk.mercurial.Mercurial
-import org.firstinspires.ftc.teamcode.dairy.actions.ClawGrab
+import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawClose
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
-import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive
+import org.firstinspires.ftc.teamcode.old.teamcode.MecanumDrive
+import org.firstinspires.ftc.teamcode.dairy.actions.ClawReturn
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawClose
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawOpen
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakeClawPartial
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakeIn
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakeOut
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakePitchDown
+import org.firstinspires.ftc.teamcode.dairy.actions.IntakePitchUp
+import org.firstinspires.ftc.teamcode.dairy.actions.LiftHome
+import org.firstinspires.ftc.teamcode.dairy.actions.OuttakeClawOpen
+import org.firstinspires.ftc.teamcode.dairy.actions.OuttakePitchUp
+import org.firstinspires.ftc.teamcode.dairy.actions.SampleHeight
+import org.firstinspires.ftc.teamcode.dairy.actions.SpecimenHeight
+import org.firstinspires.ftc.teamcode.dairy.util.SilkRoad
 
 @Mercurial.Attach
 @Lift.Attach
@@ -22,12 +39,20 @@ import org.firstinspires.ftc.teamcode.roadrunner.teamcode.MecanumDrive
 @Intake.Attach
 @Photon
 @Autonomous
+@SilkRoad.Attach
 class BlueAuto1: OpMode() {
     var d: MecanumDrive = TODO()
     val init_pos = Pose2d(12.0, 61.0,0.0)
 
     override fun init() {
-        d = MecanumDrive(hardwareMap, init_pos)
+        d = MecanumDrive(
+            hardwareMap,
+            init_pos
+        )
+
+        runBlocking(
+            OuttakeClawClose.outtakeClawClose()
+        )
     }
 
     override fun loop() {
@@ -74,8 +99,41 @@ class BlueAuto1: OpMode() {
             .splineTo(Vector2d(-24.0, -12.0), 0.0)
             .turn(-Math.PI / 2)
 
+        val pickUpAndTransfer: Action = SequentialAction(
+            IntakeOut.intakeOut(),
+            IntakeClawOpen.intakeClawOpen(),
+            IntakePitchDown.intakePitchDown(),
+            IntakeClawClose.intakeClawClose(),
+            IntakePitchUp.intakePitchUp(),
+            IntakeIn.intakeIn(),
+            OuttakeClawClose.outtakeClawClose(),
+            IntakeClawPartial.intakeClawPartial(),
+        )
+
+        val scoreSample:Action = SequentialAction(
+            ParallelAction(
+                SampleHeight.sampleHeight(),
+                OuttakePitchUp.outtakePitchUp()
+            ),
+            OuttakeClawOpen.outtakeClawOpen(),
+            ClawReturn.clawReturn(),
+            LiftHome.liftHome()
+        )
+
         runBlocking(
-             ClawGrab.clawGrab()
+            SequentialAction(
+                dropOff.build(),
+                OuttakePitchUp.outtakePitchUp(),
+                SpecimenHeight.specimenHeight(),
+                OuttakeClawOpen.outtakeClawOpen(),
+                ClawReturn.clawReturn(),
+                LiftHome.liftHome(), // Done with the specimen
+
+                firstSamplePickUp.build(),
+                pickUpAndTransfer,
+                firstSampleDropOff.build(),
+                scoreSample, // score first sample
+            )
         )
     }
 

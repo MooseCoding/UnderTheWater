@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.robot.Intake;
-import org.firstinspires.ftc.teamcode.robot.Lift;
-import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.vision.Sample;
+import org.firstinspires.ftc.teamcode.old.robot.Intake;
+import org.firstinspires.ftc.teamcode.old.robot.Lift;
+import org.firstinspires.ftc.teamcode.old.robot.Robot;
+import org.firstinspires.ftc.teamcode.old.robot.vision.Sample;
 
 import java.util.ArrayList;
 

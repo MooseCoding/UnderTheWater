@@ -13,11 +13,11 @@ class IntakeClawClose() : Action {
         if (!init) {
             waiter = Waiter()
             waiter.start(200)
-            IntakeClaw.INSTANCE.openClaw()
+            IntakeClaw.claw_pos = IntakeClaw.claw_close
             init = true
         }
 
-        return !waiter.isDone
+        return waiter.isDone
     }
 
     companion object {

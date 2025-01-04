@@ -47,10 +47,10 @@ class Drivetrain private constructor() : Subsystem {
     companion object {
         val INSTANCE: Drivetrain = Drivetrain()
 
-        private var fL: DcMotorEx? = null
-        private var fR: DcMotorEx? = null
-        private var bR: DcMotorEx? = null
-        private var bL: DcMotorEx? = null
+        var fL: DcMotorEx? = null
+        var fR: DcMotorEx? = null
+        var bR: DcMotorEx? = null
+        var bL: DcMotorEx? = null
 
         @JvmField var driver1: Boolean = true
 
@@ -60,13 +60,13 @@ class Drivetrain private constructor() : Subsystem {
             var max: Double
 
             // read the gamepads
-            var axial: Double = gamepad1.leftStickX.state
-            var lateral: Double = gamepad1.leftStickY.state
+            var axial: Double = gamepad1.leftStickY.state
+            var lateral: Double = gamepad1.leftStickX.state
             var yaw: Double = gamepad1.rightStickX.state
 
             if(!driver1) {
-                axial = gamepad2.leftStickX.state
-                lateral = gamepad2.leftStickY.state
+                axial = gamepad2.leftStickY.state
+                lateral = gamepad2.leftStickX.state
                 yaw = gamepad2.rightStickX.state
             }
 

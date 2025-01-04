@@ -12,12 +12,12 @@ class IntakePitchDown() : Action {
     override fun run(p: TelemetryPacket): Boolean {
         if (!init) {
             waiter = Waiter()
-            waiter.start(200)
-            IntakeClaw.INSTANCE.pitchDown()
+            waiter.start(400)
+            IntakeClaw.pitch_pos = IntakeClaw.pitch_down
             init = true
         }
 
-        return !waiter.isDone
+        return waiter.isDone
     }
 
     companion object {

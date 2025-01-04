@@ -5,23 +5,29 @@ import com.acmerobotics.roadrunner.Action
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Lift
 import org.firstinspires.ftc.teamcode.dairy.subsystems.OuttakeClaw
 
+@Lift.Attach
 class SpecimenHeight() : Action {
     private var init = false
 
     override fun run(p: TelemetryPacket): Boolean {
         if (!init) {
+            Lift.pidfused = true
             Lift.target = 2000.0
             init = true
         }
 
         Lift.update()
 
-        return Lift.outtake1!!.currentPosition <= 1900
+        if(Lift.outtake1!!.currentPosition > 1950) {
+            return true
+        }
+
+        return false
     }
 
     companion object {
-        fun outtakeClawClose(): Action {
-            return OuttakeClawClose()
+        fun specimenHeight(): Action {
+            return SpecimenHeight()
         }
     }
 }

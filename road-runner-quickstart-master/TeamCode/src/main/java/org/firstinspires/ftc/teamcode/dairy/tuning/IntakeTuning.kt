@@ -40,7 +40,7 @@ class IntakeTuning: OpMode() {
         Mercurial.gamepad1.cross.onTrue(
             Sequential(
             Intake.goTo(1000),
-            Intake.flipPID())
+            Intake.pidTrue())
         )
 
         Mercurial.gamepad1.leftStickButton.onTrue(
