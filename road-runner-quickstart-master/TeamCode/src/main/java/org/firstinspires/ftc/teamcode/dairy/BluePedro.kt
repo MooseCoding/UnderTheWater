@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.SequentialAction
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import dev.frozenmilk.mercurial.Mercurial
+import dev.frozenmilk.mercurial.commands.groups.Parallel
 import dev.frozenmilk.mercurial.commands.groups.Sequential
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
@@ -177,7 +178,9 @@ class BluePedro: OpMode() {
                         IntakeClaw.INSTANCE.closeClaw(),
                         IntakeClaw.INSTANCE.pitchUp(),
                         IntakeClaw.INSTANCE.cleanYaw(),
-                        Intake.goTo(0)
+                        Intake.goTo(0),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        IntakeClaw.INSTANCE.partialClaw(),
                     )
 
                     if(Intake.target.toInt() == 0 && OuttakeClaw.pitch_pos == OuttakeClaw.pitch_down) {
@@ -190,39 +193,182 @@ class BluePedro: OpMode() {
 
             2 ->   {
                 if(isClose()) {
-                    val s:Sequential = Sequential(
-
+                    Sequential(
+                        Parallel(
+                            Lift.goTo(3900),
+                            OuttakeClaw.INSTANCE.pitchUp()
+                        ),
+                        OuttakeClaw.INSTANCE.clawOpen(),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        OuttakeClaw.INSTANCE.pitchDown(),
+                        Parallel(
+                            IntakeClaw.INSTANCE.closeClaw(), // 200 ms
+                            OuttakeClaw.INSTANCE.clawOpen(), // 200 ms // ~600 ms
+                            Intake.pidFalse() // 0 ms
+                        ),
+                        Lift.goTo(0),
+                        Lift.pidfFalse()
                     )
 
-
-                    setPathState(3)
+                    if(!Lift.pidfused) {
+                        follower.followPath(path.getPath(2))
+                        setPathState(3)
+                    }
                 }
 
             }
 
             3 -> {
-                setPathState(4)
+                if(isClose()) {
+                    Sequential(
+                        Intake.goTo(300),
+                        IntakeClaw.INSTANCE.openClaw(),
+                        IntakeClaw.INSTANCE.pitchDown(),
+                        IntakeClaw.INSTANCE.closeClaw(),
+                        IntakeClaw.INSTANCE.pitchUp(),
+                        IntakeClaw.INSTANCE.cleanYaw(),
+                        Intake.goTo(0),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        IntakeClaw.INSTANCE.partialClaw(),
+                        Lift.pidfTrue()
+                    )
+
+                    if(IntakeClaw.claw_pos == IntakeClaw.claw_partial) {
+                        follower.followPath(path.getPath(3))
+                        setPathState(4)
+                    }
+                }
             }
 
             4 -> {
-                setPathState(5)
+                if(isClose()) {
+                    Sequential(
+                        Parallel(
+                            Lift.goTo(3900),
+                            OuttakeClaw.INSTANCE.pitchUp()
+                        ),
+                        OuttakeClaw.INSTANCE.clawOpen(),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        OuttakeClaw.INSTANCE.pitchDown(),
+                        Parallel(
+                            IntakeClaw.INSTANCE.closeClaw(), // 200 ms
+                            OuttakeClaw.INSTANCE.clawOpen(), // 200 ms // ~600 ms
+                            Intake.pidFalse() // 0 ms
+                        ),
+                        Lift.goTo(0),
+                        Lift.pidfFalse()
+                    )
+
+                    if(!Lift.pidfused) {
+                        follower.followPath(path.getPath(4))
+                        setPathState(5)
+                    }
+                }
             }
 
             5 -> {
+                if(isClose()) {
+                    Sequential(
+                        Intake.goTo(300),
+                        IntakeClaw.INSTANCE.openClaw(),
+                        IntakeClaw.INSTANCE.pitchDown(),
+                        IntakeClaw.INSTANCE.closeClaw(),
+                        IntakeClaw.INSTANCE.pitchUp(),
+                        IntakeClaw.INSTANCE.cleanYaw(),
+                        Intake.goTo(0),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        IntakeClaw.INSTANCE.partialClaw(),
+                    )
 
-                setPathState(6)
+                    if(IntakeClaw.claw_pos == IntakeClaw.claw_partial) {
+                        follower.followPath(path.getPath(5))
+                        setPathState(6)
+                    }
+                }
             }
 
             6 -> {
-                setPathState(7)
+                if(isClose()) {
+                    Sequential(
+                        Parallel(
+                            Lift.goTo(3900),
+                            OuttakeClaw.INSTANCE.pitchUp()
+                        ),
+                        OuttakeClaw.INSTANCE.clawOpen(),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        OuttakeClaw.INSTANCE.pitchDown(),
+                        Parallel(
+                            IntakeClaw.INSTANCE.closeClaw(), // 200 ms
+                            OuttakeClaw.INSTANCE.clawOpen(), // 200 ms // ~600 ms
+                            Intake.pidFalse() // 0 ms
+                        ),
+                        Lift.goTo(0),
+                        Lift.pidfFalse()
+                    )
+
+                    if(!Lift.pidfused) {
+                        follower.followPath(path.getPath(6))
+                        setPathState(7)
+                    }
+                }
             }
 
             7 ->  {
-                setPathState(8)
+                if(isClose()) {
+                    Sequential(
+                        Intake.goTo(300),
+                        IntakeClaw.INSTANCE.openClaw(),
+                        IntakeClaw.INSTANCE.pitchDown(),
+                        IntakeClaw.INSTANCE.closeClaw(),
+                        IntakeClaw.INSTANCE.pitchUp(),
+                        IntakeClaw.INSTANCE.cleanYaw(),
+                        Intake.goTo(0),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        IntakeClaw.INSTANCE.partialClaw(),
+                    )
+
+                    if(IntakeClaw.claw_pos == IntakeClaw.claw_partial) {
+                        follower.followPath(path.getPath(7))
+                        setPathState(8)
+                    }
+                }
             }
 
             8 -> {
-                setPathState(-1)
+                if(isClose()) {
+                    Sequential(
+                        Parallel(
+                            Lift.goTo(3900),
+                            OuttakeClaw.INSTANCE.pitchUp()
+                        ),
+                        OuttakeClaw.INSTANCE.clawOpen(),
+                        OuttakeClaw.INSTANCE.clawClose(),
+                        OuttakeClaw.INSTANCE.pitchDown(),
+                        Parallel(
+                            IntakeClaw.INSTANCE.closeClaw(), // 200 ms
+                            OuttakeClaw.INSTANCE.clawOpen(), // 200 ms // ~600 ms
+                            Intake.pidFalse() // 0 ms
+                        ),
+                        Lift.goTo(0),
+                        Lift.pidfFalse()
+                    )
+
+                    if(!Lift.pidfused) {
+                        follower.followPath(path.getPath(8))
+                        setPathState(9)
+                    }
+                }
+            }
+
+            9 -> {
+                if(isClose()) {
+                    Sequential(
+                        Lift.goTo(2000),
+                        OuttakeClaw.INSTANCE.pitchUp()
+                    )
+
+                    setPathState(-1)
+                }
             }
         }
     }
@@ -233,7 +379,7 @@ class BluePedro: OpMode() {
     }
 
     override fun loop() {
-        follower!!.update()
+        follower.update()
         autonomousPathUpdate()
 
         telemetry.addData("path state", pathState)
