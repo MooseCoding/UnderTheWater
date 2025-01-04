@@ -24,27 +24,27 @@ import org.firstinspires.ftc.teamcode.pedroPathing.util.KalmanFilterParameters;
 public class FollowerConstants {
 
     // This section is for configuring your motors
-    public static String leftFrontMotorName = "leftFront";
-    public static String leftRearMotorName = "leftRear";
-    public static String rightFrontMotorName = "rightFront";
-    public static String rightRearMotorName = "rightRear";
+    public static String leftFrontMotorName = "frontLeft";
+    public static String leftRearMotorName = "backLeft";
+    public static String rightFrontMotorName = "frontRight";
+    public static String rightRearMotorName = "backRight";
 
     public static DcMotorSimple.Direction leftFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
-    public static DcMotorSimple.Direction rightFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
-    public static DcMotorSimple.Direction leftRearMotorDirection = DcMotorSimple.Direction.FORWARD;
-    public static DcMotorSimple.Direction rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
+    public static DcMotorSimple.Direction rightFrontMotorDirection = DcMotorSimple.Direction.FORWARD;
+    public static DcMotorSimple.Direction leftRearMotorDirection = DcMotorSimple.Direction.REVERSE;
+    public static DcMotorSimple.Direction rightRearMotorDirection = DcMotorSimple.Direction.REVERSE;
 
     // This section is for setting the actual drive vector for the front left wheel, if the robot
     // is facing a heading of 0 radians with the wheel centered at (0,0)
-    private static double xMovement = 81.34056;
-    private static double yMovement = 65.43028;
+    private static double xMovement = 68.71679665778984;
+    private static double yMovement = 46.85070475523637;
     private static double[] convertToPolar = Point.cartesianToPolar(xMovement, -yMovement);
     public static Vector frontLeftVector = MathFunctions.normalizeVector(new Vector(convertToPolar[0], convertToPolar[1]));
 
 
     // Translational PIDF coefficients (don't use integral)
     public static CustomPIDFCoefficients translationalPIDFCoefficients = new CustomPIDFCoefficients(
-            0.1,
+            0.2,
             0,
             0,
             0);
@@ -62,7 +62,7 @@ public class FollowerConstants {
 
     // Heading error PIDF coefficients
     public static CustomPIDFCoefficients headingPIDFCoefficients = new CustomPIDFCoefficients(
-            1,
+            1.3,
             0,
             0,
             0);
@@ -75,7 +75,7 @@ public class FollowerConstants {
     public static CustomFilteredPIDFCoefficients drivePIDFCoefficients = new CustomFilteredPIDFCoefficients(
             0.025,
             0,
-            0.00001,
+            0.0002,
             0.6,
             0);
 
@@ -89,19 +89,19 @@ public class FollowerConstants {
 
 
     // Mass of robot in kilograms
-    public static double mass = 10.65942;
+    public static double mass = 13.56241;
 
     // Centripetal force to power scaling
-    public static double centripetalScaling = 0.0005;
+    public static double centripetalScaling = 0.0006;
 
 
     // Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
     // if not negative, then the robot thinks that its going to go faster under 0 power
-    public static double forwardZeroPowerAcceleration = -34.62719;
+    public static double forwardZeroPowerAcceleration = -34.02972426675902;
 
     // Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
     // if not negative, then the robot thinks that its going to go faster under 0 power
-    public static double lateralZeroPowerAcceleration = -78.15554;
+    public static double lateralZeroPowerAcceleration = -89.19154389652786;
 
     // A multiplier for the zero power acceleration to change the speed the robot decelerates at
     // the end of paths.
@@ -110,13 +110,13 @@ public class FollowerConstants {
     // Decreasing this will cause the deceleration at the end of the Path to be slower, making the
     // robot slower but reducing risk of end-of-path overshoots or localization slippage.
     // This can be set individually for each Path, but this is the default.
-    public static double zeroPowerAccelerationMultiplier = 4;
+    public static double zeroPowerAccelerationMultiplier = 3;
 
 
     // When the robot is at the end of its current Path or PathChain and the velocity goes below
     // this value, then end the Path. This is in inches/second.
     // This can be custom set for each Path.
-    public static double pathEndVelocityConstraint = 0.1;
+    public static double pathEndVelocityConstraint = 3;
 
     // When the robot is at the end of its current Path or PathChain and the translational error
     // goes below this value, then end the Path. This is in inches.

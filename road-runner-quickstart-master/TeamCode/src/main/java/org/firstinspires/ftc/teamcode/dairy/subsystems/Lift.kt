@@ -101,7 +101,7 @@ class Lift private constructor() : Subsystem {
 
          */
         @JvmField
-        var tolerance = 600
+        var tolerance = 150
 
 
     fun pidUpdate() {
@@ -114,7 +114,7 @@ class Lift private constructor() : Subsystem {
 
     fun update(): Lambda {
         return Lambda("update the pid")
-            .addRequirements()
+            .addRequirements(Lift)
             .setExecute {
                 if (pidfused) {
                     pidUpdate()
@@ -134,25 +134,17 @@ class Lift private constructor() : Subsystem {
                 pidf!!.target = target.toInt()
             }
             .setExecute {
-                update()
+
             }
             .setFinish {
-                if(atTarget() && target.toInt() == 0) {
-                    outtake1!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-                    outtake2!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-                    true
-                }
-                else if(atTarget()){
-                    true
-                }
-                else false
+                atTarget()
             }
     }
 
         fun pidfFalse(): Lambda {
             return Lambda("flip PID value")
                 .setExecute {
-                    pidfused = false // change the pid value to be what is it
+                    pidfused = false // change the pid value to false
                 }
                 .setFinish{true}
         }
@@ -160,7 +152,7 @@ class Lift private constructor() : Subsystem {
         fun pidfTrue(): Lambda {
             return Lambda("flip PID value")
                 .setExecute {
-                    pidfused = true // change the pid value to be what is it
+                    pidfused = true // change the pid value to true
                 }
                 .setFinish{true}
         }

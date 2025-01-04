@@ -51,11 +51,9 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_open // Open the claw pos
                 update() // Force an update
-                waiter.start(200)
             }
             .setFinish{
-                waiter.isDone
-
+               true
             }
     }
 
@@ -65,10 +63,9 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_close // set the claw pos to close
                 update() // Force update
-                waiter.start(200)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -78,10 +75,9 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_partial // Partially open the claw
                 update() // force update
-                waiter.start(150)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -104,10 +100,9 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit {
                 pitch_pos = pitch_down // set the pitch pos to go down
                 update()
-                waiter.start(200)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
@@ -117,10 +112,9 @@ class IntakeClaw private constructor() : Subsystem {
             .setInit{
                 yaw_pos = yaw_home // reset the yaw
                 update()
-                waiter.start(200)
             }
             .setFinish {
-                waiter.isDone
+                true
             }
     }
 
