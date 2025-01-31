@@ -35,7 +35,6 @@ class Drivetrain private constructor() : Subsystem {
 
         fL!!.direction = DcMotorSimple.Direction.REVERSE
         bL!!.direction = DcMotorSimple.Direction.REVERSE
-        bR!!.direction = DcMotorSimple.Direction.REVERSE
 
         defaultCommand = driveUpdate()
     }

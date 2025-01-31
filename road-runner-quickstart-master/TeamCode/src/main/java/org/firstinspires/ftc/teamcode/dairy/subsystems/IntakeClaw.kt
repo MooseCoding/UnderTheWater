@@ -1,12 +1,10 @@
 package org.firstinspires.ftc.teamcode.dairy.subsystems
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -124,13 +122,39 @@ class IntakeClaw private constructor() : Subsystem {
             }
     }
 
+    fun wait(mS:Int): Lambda {
+        return Lambda("wait")
+            .setRequirements()
+            .setInit{
+                waiter.start(mS)
+            }
+            .setFinish{
+                waiter.isDone
+            }
+    }
+
+    fun rotYaw90(): Lambda {
+        return Lambda("rot yaw 90")
+            .setRequirements()
+            .setInit {
+                yaw_pos = yaw_90
+                update()
+                waiter.start(250)
+            }
+            .setFinish{
+                waiter.isDone
+
+            }
+    }
+
     companion object {
-         val claw_open: Double = 0.9 // TUNED - Dec 12
-         val claw_close: Double = 0.6 // TUNED - Dec 12
-         val pitch_up: Double = 0.118 // TUNED - Dec 12
+         val claw_open: Double = 0.72 // TUNED - Dec 12
+         val claw_close: Double = 0.45 // TUNED - Dec 12
+         val pitch_up: Double = 0.103 // TUNED - Dec 12
          val pitch_down: Double = 0.22 // TUNED - Dec 12
          val yaw_home: Double = 0.39 // TUNED - Dec 12
-         val claw_partial: Double = 0.74 // TUNED - Dec 12
+         val claw_partial: Double = 0.54 // TUNED - Dec 12
+        val yaw_90:Double = 0.40
 
         var telemetry:Telemetry? = null
 

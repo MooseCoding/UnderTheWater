@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.dairy.tuning
 import android.graphics.Canvas
 import android.util.Size
 import com.outoftheboxrobotics.photoncore.Photon
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
-import org.firstinspires.ftc.teamcode.old.robot.vision.Color
-import org.firstinspires.ftc.teamcode.old.robot.vision.Sample
+import org.firstinspires.ftc.teamcode.dairy.Sample
+import org.firstinspires.ftc.teamcode.dairy.Color
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.VisionProcessor
 import org.opencv.core.Core
@@ -24,6 +25,8 @@ import kotlin.math.min
 
 @TeleOp
 @Photon
+@Disabled
+
 class CameraTuning: OpMode() {
 
     private fun isRectangle(rotatedRect: RotatedRect): Boolean {
@@ -79,7 +82,7 @@ class CameraTuning: OpMode() {
                     samples.add(
                         Sample(
                             rotatedRect,
-                            color
+                            color!!
                         )
                     )
                 }

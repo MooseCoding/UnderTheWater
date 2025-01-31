@@ -5,21 +5,13 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor.RunMode
-import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.commands.groups.Sequential
-import org.firstinspires.ftc.teamcode.dairy.control.FullController
-import org.firstinspires.ftc.teamcode.dairy.control.PID
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.d
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.i
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.intake
 
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.p
 import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.pid
-
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Intake.Companion.target
 
 import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw
 

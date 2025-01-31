@@ -8,7 +8,6 @@ import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.control.FullController
 import org.firstinspires.ftc.teamcode.dairy.control.PID
 import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 import java.lang.annotation.Inherited
@@ -88,7 +87,7 @@ class Intake private constructor() : Subsystem {
 
         private lateinit var waiter:Waiter
 
-        @JvmField var tolerance : Int= 10 // tolerance for the pid controller
+        @JvmField var tolerance : Int= 120 // tolerance for the pid controller
 
         @JvmField var target: Double = 0.0 // target for the pid controller
 
@@ -117,10 +116,10 @@ class Intake private constructor() : Subsystem {
                 .setInit {
                     target = to.toDouble() // set the controller target
                     pid!!.target = target.toInt() // Update target in controller
-                    waiter.start(300)
+                    waiter.start(450)
                 }
                 .setExecute {
-                    update()
+
                 }
                 .setFinish { waiter.isDone }
         }

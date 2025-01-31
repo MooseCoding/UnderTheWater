@@ -5,11 +5,8 @@ import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial.gamepad1
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.dairy.subsystems.IntakeClaw.Companion
-import org.firstinspires.ftc.teamcode.dairy.subsystems.Template.Attach
 import org.firstinspires.ftc.teamcode.dairy.util.Waiter
 import java.lang.annotation.Inherited
 
@@ -27,7 +24,7 @@ class OuttakeClaw private constructor() : Subsystem {
         val hardwareMap = opMode.opMode.hardwareMap
 
         claw = hardwareMap.servo["outtakeClaw"]
-        pitch = hardwareMap.servo["t"]
+        pitch = hardwareMap.servo["outtakePitch"]
 
 
         time = opMode.opMode.runtime
@@ -43,9 +40,9 @@ class OuttakeClaw private constructor() : Subsystem {
 
     companion object {
          val claw_open: Double = 0.9
-         val claw_close: Double = 0.53
-         val pitch_up: Double = 0.04
-         val pitch_down: Double = 0.35
+         val claw_close: Double = 0.48
+         val pitch_up: Double = 0.07
+         val pitch_down: Double = 0.4
 
         private lateinit var waiter: Waiter
 
@@ -102,7 +99,7 @@ class OuttakeClaw private constructor() : Subsystem {
             .setInit {
                 claw_pos = claw_close
                 update()
-                waiter.start(150)
+                waiter.start(250)
             }
             .setFinish {
                 waiter.isDone

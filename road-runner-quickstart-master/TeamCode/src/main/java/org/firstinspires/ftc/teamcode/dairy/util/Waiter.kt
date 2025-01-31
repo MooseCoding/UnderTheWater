@@ -4,9 +4,9 @@ class Waiter {
     private var startTime: Long = 0
     private var waitMS: Long = 0
 
-    fun start(waitMS: Long) {
+    fun start(waitMS: Int) {
         startTime = System.nanoTime() / 1000000
-        this.waitMS = waitMS
+        this.waitMS = waitMS.toLong()
     }
 
     val isDone: Boolean

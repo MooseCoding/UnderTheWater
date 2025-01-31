@@ -19,44 +19,53 @@ public class MeepMeepTesting {
                 .build();
 
         myBot.runAction(myBot.getDrive().actionBuilder(
-                new Pose2d(-8, -61, Math.PI/2))
+                new Pose2d(-10, -61, Math.PI/2))
                 // Drop off preload
-                    .lineToY(-36)
+                .splineTo(new Pose2d(-10, -34, Math.PI/2).component1(), Math.PI/2)
                                 .waitSeconds(4)
 
-                /* .lineToY(-40)
+                        .lineToY(-40)/*
                 .strafeTo(new Vector2d(-35, -40))
                 .strafeTo(new Vector2d(-35, -0))
                 .turn(-Math.PI/2)
                 .lineToX(-24) */
 
+
                  // First sample pickup
-                    .splineTo(new Vector2d(-48, -37), Math.PI/2)
+                    .splineTo(new Vector2d(-52, -60), Math.PI)
+                        .turn(Math.PI+20*Math.PI/180)
                 .waitSeconds(1)
 
-                .turn(Math.PI/2)
-                    .strafeTo(new Vector2d(-52, -60))
+                //.turn(Math.PI/2)
+                        .turn(-(Math.PI/2 + (double) 5 /180*Math.PI +20*Math.PI/180))
+                        .waitSeconds(1)
+                        .turn(Math.PI/2 + (double) 5 /180*Math.PI +20*Math.PI/180)
+                        .waitSeconds(1)
+                   // .strafeTo(new Vector2d(-52, -60))
+
                 .waitSeconds(1)
+
+
 
                 // Second sample pickup
-                        .strafeTo(new Vector2d(-58, -35))
-                    .turn(-Math.PI/2)
+
+                    .turn(-80*Math.PI/180 -20*Math.PI/180)
                         .waitSeconds(1)
-                        .strafeTo(new Vector2d(-52, -60))
-                        .turn(Math.PI/2)
+                .turn(80*Math.PI/180 + +20*Math.PI/180)
                 .waitSeconds(1)
 
 
                 // Third sample pickup
-                        .strafeTo(new Vector2d(-55, -28))
-                        .waitSeconds(1)
+                        .turn(120*Math.PI/180-Math.PI-20*Math.PI/180)
+                        .waitSeconds(2)
                         .strafeTo(new Vector2d(-52, -60))
+                .turn(-1*(120*Math.PI/180-Math.PI-20*Math.PI/180))
                         .waitSeconds(1)
 
                         .strafeTo(new Vector2d(-52, -40))
 
-                        .splineTo(new Vector2d(-24, -12), 0)
-                        .turn(-Math.PI/2)
+                        .splineTo(new Vector2d(-24, -12), -Math.PI/2 - 20*Math.PI/180)
+
 
 
                 .build());
